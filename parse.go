@@ -18,7 +18,7 @@ var date_format = "Mon, Jan 2, 2006 at 3:04pm"
 func parse_comments(c []string) string {
 	var toReturn string
 	for index := range c {
-		cmt_splt := strings.Split(c[index],"|")
+		cmt_splt := strings.Split(c[index],"¦")
 		cmt_name := cmt_splt[0]
 		//cmt_ip := cmt_splt[1]
 		cmt_email := cmt_splt[2]
@@ -30,12 +30,23 @@ func parse_comments(c []string) string {
 		cmt_datetime := time.Unix(cmt_epoch, 0).Format(date_format)
 		cmt_content := cmt_splt[5]
 		cmt_content = parse_emoticons(cmt_content)
+		cmt_face := cmt_splt[6]
+		cmt_xface := cmt_splt[7]
+
+
 
 		toReturn += `<div id="comment`+strconv.Itoa(index)+`"><div id="facesBox`+strconv.Itoa(index)+`" class="facesBox"><div id="picons`+strconv.Itoa(index)+`" class="picons">`+strings.Replace(strings.Trim(fmt.Sprint(search_picons(cmt_email)), "[]"), "> ", ">", -1)+`</div></div><p style="margin-top:0" align="left"> on `+cmt_datetime+`, <a href="`+cmt_hmpg+`" target="_new">`+cmt_name+`</a> [<a href="mailto:`+cmt_email+`" rel="nofollow">e-mail</a>] said
 </p><p align="justify">
 `+cmt_content+`
-</p></div><script>doGravatar("`+cmt_email+`");</script><hr>
-`
+</p></div><script>doGravatar("`+cmt_email+`");`
+		if cmt_face != "" {
+			toReturn += "doFace(\""+cmt_face+"\");"
+		}
+		if cmt_xface != "" {
+			toReturn += "doXFace(\""+cmt_xface+"\");"
+		}
+		toReturn += "gCount++;</script><hr>"
+
 	}
 	return toReturn
 }
@@ -184,7 +195,7 @@ func main() {
 
 	scanner := bufio.NewScanner(file)
 	scanner.Scan()
-	metadata := strings.Split(scanner.Text(), "|")
+	metadata := strings.Split(scanner.Text(), "¦")
 
 	postNum := metadata[0]
 	name := metadata[1]

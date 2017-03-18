@@ -24,7 +24,7 @@ var xFace = "\"dS=exdec+W_UIU-3u;#}nMS}IF1SKB\";kNLiY(S}LxSXj5myL9ah32r\"z;kX6t$
   doGravatar(sender);
 */
 
-function doXFace(){
+function doXFace(xFace){
     var xFaceCache = new Array();
     //var xFaceImg = document.getElementById("xface");
     var xFaceImg = document.createElement("img");
@@ -40,11 +40,10 @@ function doXFace(){
 	xFaceCache[xFace] = FaceURL(xFace, koComputedStyle);
     }
     xFaceImg.setAttribute("src", xFaceCache[xFace]);
-    fbox[gCount-1].appendChild(xFaceImg);
-    //return xFaceImg;
+    document.getElementById("facesBox"+gCount).insertBefore(xFaceImg, document.getElementById("facesBox"+gCount).firstChild);
 }
 
-function doFace() {
+function doFace(face) {
     //var faceImage = document.getElementById("face");
     var faceImage = document.createElement("img");
     faceImage.setAttribute("class", "face");
@@ -53,8 +52,7 @@ function doFace() {
 
     face = face.replace(/(\s)+/g, "");
     faceImage.setAttribute("src", ("data:image/png;base64," + encodeURIComponent(face)));
-    fbox[gCount-1].appendChild(faceImage);
-    //return faceImage;
+    document.getElementById("facesBox"+gCount).insertBefore(faceImage, document.getElementById("facesBox"+gCount).firstChild);
 }
 
 function doGravatar(sender) {
@@ -90,7 +88,6 @@ function doGravatar(sender) {
 	img.src = url;
 	img.onload = function() { callback(this.width, this.height, this.src); }
     }
-    gCount++;
 }
 
 /*function doPicon(sender) {
