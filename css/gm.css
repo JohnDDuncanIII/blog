@@ -20,7 +20,8 @@ body {
 }
 
 #frame {
-    display: table-cell;
+    /*display: table-cell;*/
+    width: 760px;
     position: relative;
     text-align:left;
     border: 2px solid black;
@@ -83,7 +84,7 @@ body {
 
 #contentheader { background:#fff; }
 
-@media only screen and (max-width:585px) {
+@media only screen and (max-width:605px) {
     #contentright, #contentsidebar {
         display:none;
     }
@@ -161,10 +162,6 @@ a:hover {
     border: 1px solid #000;
 }
 
-.text {
-    border: 1px solid #000;
-    color: #000;
-}
 
 .raised {
     position: relative;
@@ -263,12 +260,28 @@ table.calendar { width: 100%; }
   /*pointer-events: none;*/
 }
 
+#new_comment_box .text {
+    display: table;
+    margin-top: 2px;
+    width: 250px;
+}
+
+#emoticons {
+    display: inline-block;
+    margin-left: -70px;
+    vertical-align: top;
+}
+
+#input_box textarea {
+    width: 250px;
+    height: 150px;
+    display: inline-block;
+}
+
 input[type="checkbox"] {
     display:none;
 }
-label {
-    cursor: pointer;
-}
+
 input[type="checkbox"] + label span {
     display:inline-block;
     width:14px;
@@ -284,6 +297,12 @@ input[type="checkbox"]:checked + label span {
     background:url("img/toggle_16_on_hlt.xbm.gif") left top no-repeat;
     margin-right: 3px;
 }
+
+label {
+    cursor: pointer;
+}
+
+
 
 
 /*input[type=checkbox]:checked {

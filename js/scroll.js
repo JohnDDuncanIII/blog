@@ -83,10 +83,16 @@ jsScroll.checked = (localStorage.getItem('scrollbar') == 'true');
 jsHeader.checked = (localStorage.getItem('header') == 'true');
 var distToTop = 0;
 
+var frame = document.getElementById("frame");
 var sidebar = document.getElementById("contentsidebar");
 var sidebarDisplay = sidebar.style.display;
+var frameDisplay = frame.style.display;
+var frameWidth = frame.style.width;
+
 if(!jsSidebar.checked) {
     sidebar.style.display = "none";
+    frame.style.display = "table-cell";
+    frame.style.width = "auto";
 }
 
 var header = document.getElementById("header");
@@ -99,10 +105,14 @@ jsSidebar.onclick = function () {
     if(jsSidebar.checked) {
 	localStorage.setItem('sidebar', true);
 	sidebar.style.display = sidebarDisplay;
+	frame.style.display = frameDisplay;
+	frame.style.width = frameWidth;
     }
     else {
 	localStorage.setItem('sidebar', false);
 	sidebar.style.display = "none";
+	frame.style.display = "table-cell";
+	frame.style.width = "auto";
     }
 }
 

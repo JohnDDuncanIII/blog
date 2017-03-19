@@ -13,7 +13,7 @@
     padding: 1px;
     display: inline-block;
 }
-.face:last-child { border-right: none; padding-right: 1px; }
+.face:last-child { border-right: none; }
 
 .facesBox {
     border: 3px double black;
