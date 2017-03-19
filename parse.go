@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"net/mail"
 	"os"
 	"strings"
 	"strconv"
@@ -14,25 +15,20 @@ import (
 // user defined variables (this will be dynamic soon)
 var path string = "file:///C:/cygwin64/home/John/go_workspace/faces/"
 var title = "John's Weblog"
-var date_format = "Mon, Jan 2, 2006 at 3:04pm"
+var date_format = "Monday, January 2 2006 at 3:04pm"
 
 func main() {
 	/*
 	now := time.Now()
 	epoch := now.Unix()
-
 	fmt.Println("Now: ", now)
 	fmt.Println("Epoch(Unix) Time: ", epoch)
-
 	fmt.Println(now.Format("Mon, Jan 2, 2006 at 3:04pm"))
-
 	fmt.Println("Day: ", now.Day())
 	fmt.Println("Month: ", int(now.Month()))
 	fmt.Println("Year: ", now.Year())
-
 	fmt.Println("Hour: ", now.Hour())
 	fmt.Println("Minute: ", now.Minute())
-
 	fmt.Println(time.Unix(now.Unix(), 0).Format("Mon, Jan 2, 2006 at 3:04pm"))
 */
 	c := 0
@@ -40,6 +36,13 @@ func main() {
 	_, e := os.Stat(filename);
 	for e == nil {
 		postNum, name, subject, datetime, archive_name, content, more_content, comments, num_comments := parse_entries(filename)
+		// convert datetime back to time object 
+		t, err:= time.Parse(date_format, datetime)
+		if err != nil {
+			fmt.Println(err)
+		}
+		month := t.Month().String()
+		year := strconv.Itoa(t.Year())
 		// calculate the previous and next posts
 		prev_path := "archives/" +strconv.Itoa(c-1)+".entry"
 		next_path := "archives/" +strconv.Itoa(c+1)+".entry"
@@ -55,13 +58,7 @@ func main() {
 			next_post = `[<a href="`+path+`archives/`+next_postNum+`.html">Next entry: "`+next_subject+`"</a>]`
 		}
 
-		// parse the formatted string back into a time object
-		t, err:= time.Parse(date_format, datetime)
-		if err != nil {
-			fmt.Println(err)
-		}
-		month := t.Month().String()
-		year := strconv.Itoa(t.Year())
+
 
 		tpl :=
 `<!DOCTYPE HTML>
@@ -224,6 +221,7 @@ if(document.getElementById("bakecookie").checked){
 		filename = "archives/" +strconv.Itoa(c)+".entry"
 		_, e = os.Stat(filename);
 	}
+	log_arch, extant := parse_months_archive()
 	archive:=
 `<!DOCTYPE HTML>
 <html><head><title>`+title+`</title>
@@ -241,7 +239,7 @@ if(document.getElementById("bakecookie").checked){
 <div id="contentcenter">
 <div class="content">
 <h1>Log Archives</h1>
-<p>`+parse_months_archive()+`</p>
+<p>`+log_arch+`</p>
 </div>
 
 <div class="content">
@@ -279,7 +277,12 @@ if(document.getElementById("bakecookie").checked){
 		panic(archive_write)
 	}
 
-	/*archive_month:=`<!DOCTYPE HTML>
+	for k, _ := range extant {
+		month_year := strings.Split(k, "/")
+		year := month_year[1]
+		month := month_year[0]
+
+		archive_month:=`<!DOCTYPE HTML>
 <head><title>`+title+`</title>
 <meta charset="UTF-8">
 <link rel="stylesheet" href="`+path+`css/gm.css">
@@ -292,7 +295,7 @@ if(document.getElementById("bakecookie").checked){
 {sidebar}
 </div>-->
 <div id="contentcenter">
-`+parse_months_archive_write()+`
+`+parse_months_archive_write(month, year)+`
 </div> <!-- end contentcenter -->
 <div id="contentsidebar"><div><a href="`+path+`">Home</a><br>
 <a href="`+path+`archives/">Archives</a><br>
@@ -318,15 +321,44 @@ if(document.getElementById("bakecookie").checked){
 </div><!-- http://greymatterforum.proboards.com/-->
 </div>
 <script src="`+path+`js/scroll.js"></script>
-</body>`*/
+</body>`
+		if _, err := os.Stat("archives/"+year+"/"); os.IsNotExist(err) {
+			os.Mkdir("archives/"+year, os.ModePerm)
+		}
+		archive_month_write := ioutil.WriteFile("archives/"+year+"/"+month+".html", []byte(archive_month), 0644)
+		if archive_month_write != nil {
+			panic(archive_month_write)
+		}
+	}
+
 }
 
 
-/*func parse_months_archive_write() {
-<div class="post">
-<span class="raised">Sunday, February 5th</span>
-<div class="content">
-<h2>#AltWoke 2</h2>
+func parse_months_archive_write(m string, y string) string {
+	c := 0
+	toReturn := ""
+	filename := "archives/" +strconv.Itoa(c)+".entry"
+	var day_map map[string]string
+	day_map = make(map[string]string)
+	_, e := os.Stat(filename);
+	for e == nil {
+		day_html := ""
+		postNum, name, subject, datetime, _, content, more_content, _, num_comments := parse_entries(filename)
+		t, err:= time.Parse(date_format, datetime)
+		if err != nil {
+			fmt.Println(err)
+		}
+		day := strconv.Itoa(t.Day())
+		month := t.Month().String()
+		year := strconv.Itoa(t.Year())
+		if m == month {
+			if(day_map[day] == "") {
+				day_map[day] += `<div class="post">
+<span class="raised">`+month +" "+ day+`</span>`
+			}
+
+			day_html += `<div class="content">
+<h2>`+subject+`</h2>
 <p>
 `+content+`
 </p>
@@ -334,17 +366,31 @@ if(document.getElementById("bakecookie").checked){
 <p style="margin:0">
 `+more_content+`
 </p>
-<div class="info">Alice on 02.05.17 @ 05:52 PM CST [<a href="`+path+`archives/00000005.html" title="02/05/17: #AltWoke 2">link</a>][<a href="`+path+`archives/00000005.html#comments" onmouseover="window.status='Add a comment to this entry';return true" onmouseout="window.status='';return true">No Comments</a>]</div>
+<div class="info">`+name+` on `+datetime+` [<a href="`+path+`archives/`+postNum+`.html" title="`+month+"/"+day+"/"+year+`: `+subject+`">link</a>][<a href="`+path+`archives/`+postNum+`.html#comments">`+num_comments+` Comments</a>]</div>
 </div> <!-- end content -->
 <hr>
-</div> <!-- end post -->
-<br>
-}*/
+`
+			day_map[day] += day_html
+		}
+
+		c++
+		filename = "archives/" +strconv.Itoa(c)+".entry"
+		_, e = os.Stat(filename);
+	}
+	for k, _ := range day_map {
+		day_map[k] += `</div> <!-- end post -->
+<br>`
+	}
+	for _, v := range day_map {
+		toReturn += v
+	}
+	return toReturn;
+}
 
 func parse_entries(filename string) (string, string, string, string, string, string, string, []string, string) {
-	file, err := os.Open(filename)
-	if err != nil {
-		log.Fatal(err)
+	file, e := os.Open(filename)
+	if e != nil {
+		log.Fatal(e)
 	}
 	defer file.Close()
 
@@ -355,9 +401,9 @@ func parse_entries(filename string) (string, string, string, string, string, str
 	postNum := metadata[0]
 	name := metadata[1]
 	subject := metadata[2]
-	epoch, err := strconv.ParseInt(metadata[3], 10, 64)
-	if err != nil {
-		panic(err)
+	epoch, e := strconv.ParseInt(metadata[3], 10, 64)
+	if e != nil {
+		panic(e)
 	}
 	datetime := time.Unix(epoch, 0).Format(date_format)
 	//datetime := strconv.Itoa(time.Unix(epoch, 0).Year())
@@ -393,44 +439,44 @@ func parse_entries_archive() string {
 	c := 0
 	filename := "archives/" +strconv.Itoa(c)+".entry"
 	toReturn := ""
-	_, err := os.Stat(filename);
-	for err == nil {
+	_, e := os.Stat(filename);
+	for e == nil {
 		postNum, _, subject, datetime, _, _, _, _, _ := parse_entries(filename)
 		toReturn += `<a href="`+path+`archives/`+postNum+`.html">`+datetime+`: `+subject+`</a><br>`
 		c++
 		filename = "archives/" +strconv.Itoa(c)+".entry"
-		_, err = os.Stat(filename);
+		_, e = os.Stat(filename);
 	}
 
 	return toReturn;
 }
 
-func parse_months_archive() string {
+func parse_months_archive() (string, map[string]bool) {
 	var extant map[string]bool
 	extant = make(map[string]bool)
 	c := 0
 	filename := "archives/" +strconv.Itoa(c)+".entry"
 	toReturn := ""
-	_, err := os.Stat(filename);
-	for err == nil {
+	_, e := os.Stat(filename);
+	for e == nil {
 		_, _, _, datetime, _, _, _, _, _ := parse_entries(filename)
-		t, errr:= time.Parse(date_format, datetime)
-		if errr != nil {
-			fmt.Println(errr)
+		t, err:= time.Parse(date_format, datetime)
+		if err != nil {
+			fmt.Println(err)
 		}
 		month := t.Month().String()
 		year := strconv.Itoa(t.Year())
 		if(!extant[month+"/"+year]) {
 			extant[month+"/"+year] = true
-			toReturn += `<a href="archives/`+ year +"/"+ month +`.html">`+ month + " " + year +`</a><br>`
+			toReturn += `<a href="`+ year +"/"+ month +`.html">`+ month + " " + year +`</a><br>`
 		}
 
 		c++
 		filename = "archives/" +strconv.Itoa(c)+".entry"
-		_, err = os.Stat(filename);
+		_, e = os.Stat(filename);
 	}
 
-	return toReturn;
+	return toReturn, extant;
 }
 
 func parse_comments(c []string) string {
@@ -532,9 +578,18 @@ func search_picons(s string) []string {
 	return pBox
 }
 
+func is_valid_email() string {
+	e, err := mail.ParseAddress("alice@example.com")
+	if err == nil {
+		return e.Name+e.Address
+	}
+	return ""
+}
+
 func to_markdown(s string) string {
 	return strings.Replace(s, "|*|", "<br>", -1)
 }
+
 
 func parse_emoticons(s string) string {
 	e_path := "<img src="+path+"emoticons/"
@@ -584,4 +639,3 @@ func parse_emoticons(s string) string {
 
 	return s
 }
-
