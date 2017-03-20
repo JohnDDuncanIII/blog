@@ -108,7 +108,7 @@ func main() {
 <div align="center">
 <form id="new_comment_box" action="`+path+`cgi-bin/gm-comments.cgi#comments" method="post" name="newcomment" display="block">
 
-<input name="newcommententrynumber" type="hidden" value="2" />
+<input name="newcommententrynumber" type="hidden" value="2">
 <span style="font-weight:bold;">New Comment</span>
 
 <input name="newcommentauthor" placeholder="name" type="text" class="text">
@@ -186,12 +186,12 @@ if(document.getElementById("bakecookie").checked){
 }else{ localStorage.removeItem("gmcmtauth");localStorage.removeItem("gmcmtmail");localStorage.removeItem("gmcmthome"); }}</script>
 <!-- commentsform code end -->
 </div> 
-</div><div id="contentsidebar"><div><a href="`+path+`">Home</a><br />
-<a href="`+path+`archives/">Archives</a><br />
+</div><div id="contentsidebar"><div><a href="`+path+`index.html">Home</a><br>
+<a href="`+path+`archives/index.html">Archives</a><br>
 
-<a href="#">Fake Link One</a><br />
-<a href="#">Fake Link Two</a><br />
-<a href="#">Fake Link Three</a><br /><br />
+<a href="#">Fake Link One</a><br>
+<a href="#">Fake Link Two</a><br>
+<a href="#">Fake Link Three</a><br><br>
 
 <a href="https://github.com/JohnDDuncanIII/DarkMatter/" target="_blank">Greymatter Forums</a></div>
 <hr>
@@ -200,12 +200,12 @@ if(document.getElementById("bakecookie").checked){
 <hr>
 <!-- searchform code begin -->
 <div class="searchform">
-<form action="`+path+`cgi-bin/gm-comments.cgi" method="post"><div><input type="text" name="gmsearch" class="text" /></div>
-<div><input type="submit" value="Search" class="button" /></div></form></div>
+<form action="`+path+`cgi-bin/gm-comments.cgi" method="post"><div><input type="text" name="gmsearch" class="text"></div>
+<div><input type="submit" value="Search" class="button"></div></form></div>
 <!-- searchform code end -->
 <hr>
 <div align="center">
-<a href="https://github.com/JohnDDuncanIII/DarkMatter/" target="_top"><img src="`+path+`img/dm_1.8.3.gif" alt="Powered By Greymatter" /></a><a href="http://validator.w3.org/check/referer"><img src="`+path+`img/w3c.png" alt="Valid HTML5!"></a>
+<a href="https://github.com/JohnDDuncanIII/DarkMatter/" target="_top"><img src="`+path+`img/dm_1.8.3.gif" alt="Powered By Greymatter"></a><a href="http://validator.w3.org/check/referer"><img src="`+path+`img/w3c.png" alt="Valid HTML5!"></a>
 </div>
 </div>
 </div>
@@ -226,6 +226,7 @@ if(document.getElementById("bakecookie").checked){
 `<!DOCTYPE HTML>
 <html><head><title>`+title+`</title>
 <meta charset="UTF-8">
+<meta name="generator" content="DarkMatter 1.8.3">
 <link rel="stylesheet" href="`+path+`css/gm.css">
 </head>
 <body>
@@ -241,70 +242,18 @@ if(document.getElementById("bakecookie").checked){
 <h1>Log Archives</h1>
 <p>`+log_arch+`</p>
 </div>
-
 <div class="content">
 <h1>Entries</h1>
 <p>`+parse_entries_archive()+`</p>
 </div>
-
-</div><div id="contentsidebar"><div><a href="`+path+`">Home</a><br />
-<a href="`+path+`archives/">Archives</a><br />
-
-<a href="#">Fake Link One</a><br />
-<a href="#">Fake Link Two</a><br />
-<a href="#">Fake Link Three</a><br /><br />
-
-<a href="https://github.com/JohnDDuncanIII/DarkMatter/" target="_blank">Greymatter Forums</a></div>
-<hr>
-<!-- calendar code begin -->
-<!-- calendar code end -->
-<hr>
-<!-- searchform code begin -->
-<div class="searchform">
-<form action="`+path+`cgi-bin/gm-comments.cgi" method="post"><div><input type="text" name="gmsearch" class="text" /></div>
-<div><input type="submit" value="Search" class="button" /></div></form></div>
-<!-- searchform code end -->
-<hr>
-<div align="center">
-<a href="https://github.com/JohnDDuncanIII/DarkMatter/" target="_top"><img src="`+path+`img/dm_1.8.3.gif" alt="Powered By Greymatter" /></a><a href="http://validator.w3.org/check/referer"><img src="`+path+`img/w3c.png" alt="Valid HTML5!"></a>
-</div>
-</div><!-- https://github.com/JohnDDuncanIII/DarkMatter/-->
-</div>
-<script src="`+path+`js/scroll.js"></script>
-</body>`
-	archive_write := ioutil.WriteFile("archives/index.html", []byte(archive), 0644)
-	if archive_write != nil {
-		panic(archive_write)
-	}
-
-	for k, _ := range extant {
-		month_year := strings.Split(k, "/")
-		year := month_year[1]
-		month := month_year[0]
-
-		archive_month:=`<!DOCTYPE HTML>
-<head><title>`+title+`</title>
-<meta charset="UTF-8">
-<link rel="stylesheet" href="`+path+`css/gm.css">
-<link rel="stylesheet" href="`+path+`css/face.css">
-</head>
-<body>
-<div id="frame">
-<h1 id="header" class="header"> `+title+` </h1>
-<!-- <div id="contentright">
-{sidebar}
-</div>-->
-<div id="contentcenter">
-`+parse_months_archive_write(month, year)+`
-</div> <!-- end contentcenter -->
-<div id="contentsidebar"><div><a href="`+path+`">Home</a><br>
-<a href="`+path+`archives/">Archives</a><br>
+</div><div id="contentsidebar"><div><a href="`+path+`index.html">Home</a><br>
+<a href="`+path+`archives/index.html">Archives</a><br>
 
 <a href="#">Fake Link One</a><br>
 <a href="#">Fake Link Two</a><br>
 <a href="#">Fake Link Three</a><br><br>
 
-<a href="http://greymatterforum.proboards.com/" target="_blank">Greymatter Forums</a></div>
+<a href="https://github.com/JohnDDuncanIII/DarkMatter/" target="_blank">Greymatter Forums</a></div>
 <hr>
 <!-- calendar code begin -->
 <!-- calendar code end -->
@@ -316,9 +265,61 @@ if(document.getElementById("bakecookie").checked){
 <!-- searchform code end -->
 <hr>
 <div align="center">
-<a href="http://greymatterforum.proboards.com/" target="_top"><img src="`+path+`img/dm_1.8.3.gif" alt="Powered By Greymatter"></a><a href="http://validator.w3.org/check/referer"><img src="`+path+`img/w3c.png" alt="Valid HTML5!"></a>
+<a href="https://github.com/JohnDDuncanIII/DarkMatter/" target="_top"><img src="`+path+`img/dm_1.8.3.gif" alt="Powered By Greymatter"></a><a href="http://validator.w3.org/check/referer"><img src="`+path+`img/w3c.png" alt="Valid HTML5!"></a>
 </div>
-</div><!-- http://greymatterforum.proboards.com/-->
+</div><!-- https://github.com/JohnDDuncanIII/DarkMatter/-->
+</div>
+<script src="`+path+`js/scroll.js"></script>
+</body>`
+	archive_write := ioutil.WriteFile("archives/index.html", []byte(archive), 0644)
+	if archive_write != nil {
+		panic(archive_write)
+	}
+
+	index_archive := ""
+	for k, _ := range extant {
+		month_year := strings.Split(k, "/")
+		year := month_year[1]
+		month := month_year[0]
+		months_archive := parse_months_archive_write(month, year)
+		index_archive += months_archive
+
+		archive_month:=`<!DOCTYPE HTML>
+<head><title>`+title+`</title>
+<meta charset="UTF-8">
+<meta name="generator" content="DarkMatter 1.8.3">
+<link rel="stylesheet" href="`+path+`css/gm.css">
+</head>
+<body>
+<div id="frame">
+<h1 id="header" class="header"> `+title+` </h1>
+<!-- <div id="contentright">
+{sidebar}
+</div>-->
+<div id="contentcenter">
+`+months_archive+`
+</div><div id="contentsidebar"><div><a href="`+path+`index.html">Home</a><br>
+<a href="`+path+`archives/index.html">Archives</a><br>
+
+<a href="#">Fake Link One</a><br>
+<a href="#">Fake Link Two</a><br>
+<a href="#">Fake Link Three</a><br><br>
+
+<a href="https://github.com/JohnDDuncanIII/DarkMatter/" target="_blank">Greymatter Forums</a></div>
+<hr>
+<!-- calendar code begin -->
+<!-- calendar code end -->
+<hr>
+<!-- searchform code begin -->
+<div class="searchform">
+<form action="`+path+`cgi-bin/gm-comments.cgi" method="post"><div><input type="text" name="gmsearch" class="text"></div>
+<div><input type="submit" value="Search" class="button"></div></form></div>
+<!-- searchform code end -->
+<hr>
+<div align="center">
+<a href="https://github.com/JohnDDuncanIII/DarkMatter/" target="_top"><img src="`+path+`img/dm_1.8.3.gif" alt="Powered By Greymatter"></a><a href="http://validator.w3.org/check/referer"><img src="`+path+`img/w3c.png" alt="Valid HTML5!"></a>
+</div>
+</div><!-- https://github.com/JohnDDuncanIII/DarkMatter/-->
 </div>
 <script src="`+path+`js/scroll.js"></script>
 </body>`
@@ -329,6 +330,50 @@ if(document.getElementById("bakecookie").checked){
 		if archive_month_write != nil {
 			panic(archive_month_write)
 		}
+	}
+
+	index_html:=`<!DOCTYPE HTML>
+<head><title>`+title+`</title>
+<meta charset="UTF-8">
+<meta name="generator" content="DarkMatter 1.8.3">
+<link rel="stylesheet" href="`+path+`css/gm.css">
+</head>
+<body>
+<div id="frame">
+<h1 id="header" class="header"> `+title+` </h1>
+<!--<div id="contentright">
+{sidebar}
+</div>-->
+<div id="contentcenter">
+`+index_archive+`
+</div><div id="contentsidebar"><div><a href="`+path+`index.html">Home</a><br>
+<a href="`+path+`archives/index.html">Archives</a><br>
+
+<a href="#">Fake Link One</a><br>
+<a href="#">Fake Link Two</a><br>
+<a href="#">Fake Link Three</a><br><br>
+
+<a href="https://github.com/JohnDDuncanIII/DarkMatter/" target="_blank">Greymatter Forums</a></div>
+<hr>
+<!-- calendar code begin -->
+<!-- calendar code end -->
+<hr>
+<!-- searchform code begin -->
+<div class="searchform">
+<form action="`+path+`cgi-bin/gm-comments.cgi" method="post"><div><input type="text" name="gmsearch" class="text"></div>
+<div><input type="submit" value="Search" class="button"></div></form></div>
+<!-- searchform code end -->
+<hr>
+<div align="center">
+<a href="https://github.com/JohnDDuncanIII/DarkMatter/" target="_top"><img src="`+path+`img/dm_1.8.3.gif" alt="Powered By Greymatter"></a><a href="http://validator.w3.org/check/referer"><img src="`+path+`img/w3c.png" alt="Valid HTML5!"></a>
+</div>
+</div>
+</div>
+<script src="`+path+`js/scroll.js"></script>
+</body>`
+	archive_index_write := ioutil.WriteFile("index.html", []byte(index_html), 0644)
+	if archive_index_write != nil {
+		panic(archive_index_write)
 	}
 
 }
@@ -354,7 +399,7 @@ func parse_months_archive_write(m string, y string) string {
 		if m == month {
 			if(day_map[day] == "") {
 				day_map[day] += `<div class="post">
-<span class="raised">`+month +" "+ day+`</span>`
+<span class="raised">`+month +" "+ day+" " +year+`</span>`
 			}
 
 			day_html += `<div class="content">
@@ -362,13 +407,12 @@ func parse_months_archive_write(m string, y string) string {
 <p>
 `+content+`
 </p>
-<hr>
+<hr width="50%">
 <p style="margin:0">
 `+more_content+`
 </p>
 <div class="info">`+name+` on `+datetime+` [<a href="`+path+`archives/`+postNum+`.html" title="`+month+"/"+day+"/"+year+`: `+subject+`">link</a>][<a href="`+path+`archives/`+postNum+`.html#comments">`+num_comments+` Comments</a>]</div>
-</div> <!-- end content -->
-<hr>
+</div><hr>
 `
 			day_map[day] += day_html
 		}
@@ -378,7 +422,7 @@ func parse_months_archive_write(m string, y string) string {
 		_, e = os.Stat(filename);
 	}
 	for k, _ := range day_map {
-		day_map[k] += `</div> <!-- end post -->
+		day_map[k] += `</div><!-- end post -->
 <br>`
 	}
 	for _, v := range day_map {
