@@ -31,12 +31,12 @@ func main() {
 	fmt.Println("Minute: ", now.Minute())
 	fmt.Println(time.Unix(now.Unix(), 0).Format("Mon, Jan 2, 2006 at 3:04pm"))
 */
-	c := 0
-	filename := "archives/" +strconv.Itoa(c)+".entry"
+	entry_num := 0
+	filename := "entries/" +strconv.Itoa(entry_num)+".entry"
 	_, e := os.Stat(filename);
 	for e == nil {
 		postNum, name, subject, datetime, archive_name, content, more_content, comments, num_comments := parse_entries(filename)
-		// convert datetime back to time object 
+		// convert datetime back to time object
 		t, err:= time.Parse(date_format, datetime)
 		if err != nil {
 			fmt.Println(err)
@@ -44,234 +44,33 @@ func main() {
 		month := t.Month().String()
 		year := strconv.Itoa(t.Year())
 		// calculate the previous and next posts
-		prev_path := "archives/" +strconv.Itoa(c-1)+".entry"
-		next_path := "archives/" +strconv.Itoa(c+1)+".entry"
+		prev_path := "entries/" +strconv.Itoa(entry_num-1)+".entry"
+		next_path := "entries/" +strconv.Itoa(entry_num+1)+".entry"
 		prev_post := ""
 		next_post := ""
 
 		if _, err := os.Stat(prev_path); err == nil {
 			prev_postNum, _, prev_subject, _, _, _, _, _, _ := parse_entries(prev_path)
-			prev_post = `[<a href="`+path+`archives/`+prev_postNum+`.html">Previous entry: "`+prev_subject+`"</a>]`
+			prev_post = `[<a href="`+path+`entries/`+prev_postNum+`.html">Previous entry: "`+prev_subject+`"</a>]`
 		}
 		if _, err := os.Stat(next_path); err == nil {
 			next_postNum, _, next_subject, _, _, _, _, _, _ := parse_entries(next_path)
-			next_post = `[<a href="`+path+`archives/`+next_postNum+`.html">Next entry: "`+next_subject+`"</a>]`
+			next_post = `[<a href="`+path+`entries/`+next_postNum+`.html">Next entry: "`+next_subject+`"</a>]`
 		}
 
+		entries := generate_posts(subject, archive_name, month, year, prev_post, next_post, name, datetime, postNum, content, more_content, num_comments, comments)
 
-
-		tpl :=
-`<!DOCTYPE HTML>
-<head><title>`+title+`: `+subject+`</title>
-<meta charset="UTF-8">
-<meta name="generator" content="DarkMatter 1.8.3">
-<link rel="stylesheet" href="`+path+`css/gm.css">
-<link rel="stylesheet" href="`+path+`css/face.css">
-</head>
-<body>
-<div id="frame">
-<h1 id="header" class="header">`+title+`</h1>
-<!-- <div id="contentright">
-{sidebar}
-</div>-->
-<div class="path"><a href="`+path+`" title="back to frontpage">Home</a> &raquo; <a href="`+path+`archives/" title="weblog archives">Archives</a> &raquo; <a href="`+path+`archives/`+archive_name+`.html" title="archive of `+month+" " + year+`">`+month+" " + year+`</a> &raquo; `+subject+`</div>
-<div class="direction">
-`+prev_post+" "+next_post+`
-</div>
-<div id="contentcenter">
-<div class="post">
-
-<h2 class="h2_full">`+subject+`</h2>
-<div class="info info_archive">`+name+` on `+datetime+` [<a href="`+path+`archives/`+postNum+`.html" title="`+subject+`">permalink</a>]
-</div>
-<p>
-`+content+`
-</p>
-<hr>
-<p style="margin:0">
-`+more_content+`
-</p>
-</div>
-
-<script src="`+path+`face/xface.js"></script>
-<script src="`+path+`face/md5-call.js"></script>
-<script src="`+path+`face/md5-impl.js"></script>
-<script src="`+path+`face/main.js"></script>
-<script>gCount = 0;</script>
-<div id="comments">
-<a name="comments"> </a>
-<p align="center">
-<strong>Replies: `+num_comments+` Comments</strong>
-</p>
-`+parse_comments(comments)+`
-<!-- commentsform code begin -->
-<div align="center">
-<form id="new_comment_box" action="`+path+`cgi-bin/gm-comments.cgi#comments" method="post" name="newcomment" display="block">
-
-<input name="newcommententrynumber" type="hidden" value="2">
-<span style="font-weight:bold;">New Comment</span>
-
-<input name="newcommentauthor" placeholder="name" type="text" class="text">
-<input name="newcommentemail" placeholder="email" type="text" class="text">
-<input name="newcommentxface" placeholder="x-face" type="text" class="text">
-<input name="newcommentface" placeholder="face" type="text" class="text">
-<input name="newcommenthomepage" placeholder="homepage" type="text" class="text">
-
-<div id="input_box">
-<div id="emoticons">
-Smilies:
-<div>
-<img onclick="commentEmoticon(':)')" src="`+path+`emoticons/smile.gif" alt="smile">
-<img onclick="commentEmoticon(':O')" src="`+path+`emoticons/shocked.gif" alt="shocked">
-<img onclick="commentEmoticon(':(')" src="`+path+`emoticons/sad.gif" alt="sad">
-</div>
-
-<div>
-<img onclick="commentEmoticon(':D')" src="`+path+`emoticons/biggrin.gif" alt="big grin">
-<img onclick="commentEmoticon(':P')" src="`+path+`emoticons/tongue.gif" alt="razz">
-<img onclick="commentEmoticon(';)')" src="`+path+`emoticons/wink.gif" alt="*wink wink* hey baby">
-</div>
-
-<div>
-<img onclick="commentEmoticon(':angry:')" src="`+path+`emoticons/angry.gif" alt="angry, grr">
-<img onclick="commentEmoticon(':blush:')" src="`+path+`emoticons/blush.gif" alt="blush">
-<img onclick="commentEmoticon(':confused:')" src="`+path+`emoticons/confused.gif" alt="confused">
-</div>
-
-<div>
-<img onclick="commentEmoticon(':cool:')" src="`+path+`emoticons/cool.gif" alt="cool">
-<img onclick="commentEmoticon(':crazy:')" src="`+path+`emoticons/crazy.gif" alt="crazy">
-<img onclick="commentEmoticon(':cry:')" src="`+path+`emoticons/cry.gif" alt="cry">
-</div>
-
-<div>
-<img onclick="commentEmoticon(':doze:')" src="`+path+`emoticons/doze.gif" alt="sleepy">
-<img onclick="commentEmoticon(':hehe:')" src="`+path+`emoticons/hehe.gif" alt="hehe">
-<img onclick="commentEmoticon(':laugh:')" src="`+path+`emoticons/laugh.gif" alt="LOL">
-</div>
-
-<div>
-<img onclick="commentEmoticon(':plain:')" src="`+path+`emoticons/plain.gif" alt="plain jane">
-<img onclick="commentEmoticon(':rolleyes:')" src="`+path+`emoticons/rolleyes.gif" alt="rolls eyes">
-<img onclick="commentEmoticon(':satisfied:')" src="`+path+`emoticons/satisfied.gif" alt="satisfied">
-</div></div>
-
-<textarea name="newcommentbody"></textarea>
-</div>
-<div>
-<input id="bakecookie" name="bakecookie" type="checkbox">Save Info?
-<label for="bakecookie">
-<span></span>
-</label>
-</div>
-<input type="reset" value="Reset" class="button">
-<input name="gmpostpreview" type="submit" value="Preview" class="button">
-<input type="submit" value="Submit" class="button"  onClick="javascript:setGMlocalStorage()">
-</form>
-</div>
-<script>
-function commentEmoticon(code)
-{
-	var cache = document.newcomment.newcommentbody.value;
-	document.newcomment.newcommentbody.value = cache + " " + code;
-}
-document.newcomment.newcommentauthor.value = localStorage.getItem("gmcmtauth");
-document.newcomment.newcommentemail.value = localStorage.getItem("gmcmtmail");
-document.newcomment.newcommenthomepage.value = localStorage.getItem("gmcmthome");
-function setGMlocalStorage(){
-if(document.getElementById("bakecookie").checked){
-	localStorage.setItem("gmcmtauth", document.newcomment.newcommentauthor.value);
-	localStorage.setItem("gmcmtmail", document.newcomment.newcommentemail.value);
-	localStorage.setItem("gmcmthome", document.newcomment.newcommenthomepage.value);
-}else{ localStorage.removeItem("gmcmtauth");localStorage.removeItem("gmcmtmail");localStorage.removeItem("gmcmthome"); }}</script>
-<!-- commentsform code end -->
-</div> 
-</div><div id="contentsidebar"><div><a href="`+path+`index.html">Home</a><br>
-<a href="`+path+`archives/index.html">Archives</a><br>
-
-<a href="#">Fake Link One</a><br>
-<a href="#">Fake Link Two</a><br>
-<a href="#">Fake Link Three</a><br><br>
-
-<a href="https://github.com/JohnDDuncanIII/DarkMatter/" target="_blank">Greymatter Forums</a></div>
-<hr>
-<!-- calendar code begin -->
-<!-- calendar code end -->
-<hr>
-<!-- searchform code begin -->
-<div class="searchform">
-<form action="`+path+`cgi-bin/gm-comments.cgi" method="post"><div><input type="text" name="gmsearch" class="text"></div>
-<div><input type="submit" value="Search" class="button"></div></form></div>
-<!-- searchform code end -->
-<hr>
-<div align="center">
-<a href="https://github.com/JohnDDuncanIII/DarkMatter/" target="_top"><img src="`+path+`img/dm_1.8.3.gif" alt="Powered By Greymatter"></a><a href="http://validator.w3.org/check/referer"><img src="`+path+`img/w3c.png" alt="Valid HTML5!"></a>
-</div>
-</div>
-</div>
-<script src="`+path+`js/scroll.js"></script>
-</body>`
-		//fmt.Println(tpl)
-		// write the whole body at once
-		post_write := ioutil.WriteFile("archives/"+strconv.Itoa(c)+".html", []byte(tpl), 0644)
+		post_write := ioutil.WriteFile("entries/"+strconv.Itoa(entry_num)+".html", []byte(entries), 0644)
 		if post_write != nil {
 			panic(post_write)
 		}
-		c++
-		filename = "archives/" +strconv.Itoa(c)+".entry"
+		entry_num++
+		filename = "entries/" +strconv.Itoa(entry_num)+".entry"
 		_, e = os.Stat(filename);
 	}
 	log_arch, extant := parse_months_archive()
-	archive:=
-`<!DOCTYPE HTML>
-<html><head><title>`+title+`</title>
-<meta charset="UTF-8">
-<meta name="generator" content="DarkMatter 1.8.3">
-<link rel="stylesheet" href="`+path+`css/gm.css">
-</head>
-<body>
-<div id="frame">
-<h1 id="header" class="header"> `+title+` </h1>
-
-<!-- <div id="contentright">
-{sidebar}
-</div>-->
-<div class="path"><a href="`+path+`" title="back to frontpage">Home</a> &raquo; Archives</div>
-<div id="contentcenter">
-<div class="content">
-<h1>Log Archives</h1>
-<p>`+log_arch+`</p>
-</div>
-<div class="content">
-<h1>Entries</h1>
-<p>`+parse_entries_archive()+`</p>
-</div>
-</div><div id="contentsidebar"><div><a href="`+path+`index.html">Home</a><br>
-<a href="`+path+`archives/index.html">Archives</a><br>
-
-<a href="#">Fake Link One</a><br>
-<a href="#">Fake Link Two</a><br>
-<a href="#">Fake Link Three</a><br><br>
-
-<a href="https://github.com/JohnDDuncanIII/DarkMatter/" target="_blank">Greymatter Forums</a></div>
-<hr>
-<!-- calendar code begin -->
-<!-- calendar code end -->
-<hr>
-<!-- searchform code begin -->
-<div class="searchform">
-<form action="`+path+`cgi-bin/gm-comments.cgi" method="post"><div><input type="text" name="gmsearch" class="text"></div>
-<div><input type="submit" value="Search" class="button"></div></form></div>
-<!-- searchform code end -->
-<hr>
-<div align="center">
-<a href="https://github.com/JohnDDuncanIII/DarkMatter/" target="_top"><img src="`+path+`img/dm_1.8.3.gif" alt="Powered By Greymatter"></a><a href="http://validator.w3.org/check/referer"><img src="`+path+`img/w3c.png" alt="Valid HTML5!"></a>
-</div>
-</div><!-- https://github.com/JohnDDuncanIII/DarkMatter/-->
-</div>
-<script src="`+path+`js/scroll.js"></script>
-</body>`
-	archive_write := ioutil.WriteFile("archives/index.html", []byte(archive), 0644)
+	archive:= generate_archive(log_arch)
+	archive_write := ioutil.WriteFile("entries/index.html", []byte(archive), 0644)
 	if archive_write != nil {
 		panic(archive_write)
 	}
@@ -281,96 +80,21 @@ if(document.getElementById("bakecookie").checked){
 		month_year := strings.Split(k, "/")
 		year := month_year[1]
 		month := month_year[0]
+		fmt.Println(year + " " + month)
 		months_archive := parse_months_archive_write(month, year)
 		index_archive += months_archive
 
-		archive_month:=`<!DOCTYPE HTML>
-<head><title>`+title+`</title>
-<meta charset="UTF-8">
-<meta name="generator" content="DarkMatter 1.8.3">
-<link rel="stylesheet" href="`+path+`css/gm.css">
-</head>
-<body>
-<div id="frame">
-<h1 id="header" class="header"> `+title+` </h1>
-<!-- <div id="contentright">
-{sidebar}
-</div>-->
-<div id="contentcenter">
-`+months_archive+`
-</div><div id="contentsidebar"><div><a href="`+path+`index.html">Home</a><br>
-<a href="`+path+`archives/index.html">Archives</a><br>
-
-<a href="#">Fake Link One</a><br>
-<a href="#">Fake Link Two</a><br>
-<a href="#">Fake Link Three</a><br><br>
-
-<a href="https://github.com/JohnDDuncanIII/DarkMatter/" target="_blank">Greymatter Forums</a></div>
-<hr>
-<!-- calendar code begin -->
-<!-- calendar code end -->
-<hr>
-<!-- searchform code begin -->
-<div class="searchform">
-<form action="`+path+`cgi-bin/gm-comments.cgi" method="post"><div><input type="text" name="gmsearch" class="text"></div>
-<div><input type="submit" value="Search" class="button"></div></form></div>
-<!-- searchform code end -->
-<hr>
-<div align="center">
-<a href="https://github.com/JohnDDuncanIII/DarkMatter/" target="_top"><img src="`+path+`img/dm_1.8.3.gif" alt="Powered By Greymatter"></a><a href="http://validator.w3.org/check/referer"><img src="`+path+`img/w3c.png" alt="Valid HTML5!"></a>
-</div>
-</div><!-- https://github.com/JohnDDuncanIII/DarkMatter/-->
-</div>
-<script src="`+path+`js/scroll.js"></script>
-</body>`
-		if _, err := os.Stat("archives/"+year+"/"); os.IsNotExist(err) {
-			os.Mkdir("archives/"+year, os.ModePerm)
+		archive_month:= generate_archive_month(months_archive)
+		if _, err := os.Stat("entries/"+year+"/"); os.IsNotExist(err) {
+			os.Mkdir("entries/"+year, os.ModePerm)
 		}
-		archive_month_write := ioutil.WriteFile("archives/"+year+"/"+month+".html", []byte(archive_month), 0644)
+		archive_month_write := ioutil.WriteFile("entries/"+year+"/"+month+".html", []byte(archive_month), 0644)
 		if archive_month_write != nil {
 			panic(archive_month_write)
 		}
 	}
 
-	index_html:=`<!DOCTYPE HTML>
-<head><title>`+title+`</title>
-<meta charset="UTF-8">
-<meta name="generator" content="DarkMatter 1.8.3">
-<link rel="stylesheet" href="`+path+`css/gm.css">
-</head>
-<body>
-<div id="frame">
-<h1 id="header" class="header"> `+title+` </h1>
-<!--<div id="contentright">
-{sidebar}
-</div>-->
-<div id="contentcenter">
-`+index_archive+`
-</div><div id="contentsidebar"><div><a href="`+path+`index.html">Home</a><br>
-<a href="`+path+`archives/index.html">Archives</a><br>
-
-<a href="#">Fake Link One</a><br>
-<a href="#">Fake Link Two</a><br>
-<a href="#">Fake Link Three</a><br><br>
-
-<a href="https://github.com/JohnDDuncanIII/DarkMatter/" target="_blank">Greymatter Forums</a></div>
-<hr>
-<!-- calendar code begin -->
-<!-- calendar code end -->
-<hr>
-<!-- searchform code begin -->
-<div class="searchform">
-<form action="`+path+`cgi-bin/gm-comments.cgi" method="post"><div><input type="text" name="gmsearch" class="text"></div>
-<div><input type="submit" value="Search" class="button"></div></form></div>
-<!-- searchform code end -->
-<hr>
-<div align="center">
-<a href="https://github.com/JohnDDuncanIII/DarkMatter/" target="_top"><img src="`+path+`img/dm_1.8.3.gif" alt="Powered By Greymatter"></a><a href="http://validator.w3.org/check/referer"><img src="`+path+`img/w3c.png" alt="Valid HTML5!"></a>
-</div>
-</div>
-</div>
-<script src="`+path+`js/scroll.js"></script>
-</body>`
+	index_html:= generate_index(index_archive)
 	archive_index_write := ioutil.WriteFile("index.html", []byte(index_html), 0644)
 	if archive_index_write != nil {
 		panic(archive_index_write)
@@ -382,7 +106,7 @@ if(document.getElementById("bakecookie").checked){
 func parse_months_archive_write(m string, y string) string {
 	c := 0
 	toReturn := ""
-	filename := "archives/" +strconv.Itoa(c)+".entry"
+	filename := "entries/" +strconv.Itoa(c)+".entry"
 	var day_map map[string]string
 	day_map = make(map[string]string)
 	_, e := os.Stat(filename);
@@ -411,14 +135,14 @@ func parse_months_archive_write(m string, y string) string {
 <p style="margin:0">
 `+more_content+`
 </p>
-<div class="info">`+name+` on `+datetime+` [<a href="`+path+`archives/`+postNum+`.html" title="`+month+"/"+day+"/"+year+`: `+subject+`">link</a>][<a href="`+path+`archives/`+postNum+`.html#comments">`+num_comments+` Comments</a>]</div>
+<div class="info">`+name+` on `+datetime+` [<a href="`+path+`entries/`+postNum+`.html" title="`+month+"/"+day+"/"+year+`: `+subject+`">link</a>][<a href="`+path+`entries/`+postNum+`.html#comments">`+num_comments+` Comments</a>]</div>
 </div><hr>
 `
 			day_map[day] += day_html
 		}
 
 		c++
-		filename = "archives/" +strconv.Itoa(c)+".entry"
+		filename = "entries/" +strconv.Itoa(c)+".entry"
 		_, e = os.Stat(filename);
 	}
 	for k, _ := range day_map {
@@ -430,6 +154,7 @@ func parse_months_archive_write(m string, y string) string {
 	}
 	return toReturn;
 }
+
 
 func parse_entries(filename string) (string, string, string, string, string, string, string, []string, string) {
 	file, e := os.Open(filename)
@@ -450,9 +175,6 @@ func parse_entries(filename string) (string, string, string, string, string, str
 		panic(e)
 	}
 	datetime := time.Unix(epoch, 0).Format(date_format)
-	//datetime := strconv.Itoa(time.Unix(epoch, 0).Year())
-	/*archive_name := strconv.Itoa(time.Unix(epoch, 0).Year())  +"/" +
-		strconv.Itoa(int(time.Unix(epoch, 0).Month()))*/
 	archive_name := strconv.Itoa(time.Unix(epoch, 0).Year())  + "/" +
 		time.Unix(epoch, 0).Month().String()
 
@@ -479,27 +201,29 @@ func parse_entries(filename string) (string, string, string, string, string, str
 	return postNum, name, subject, datetime, archive_name, content, more_content, comments, num_comments
 }
 
+
 func parse_entries_archive() string {
 	c := 0
-	filename := "archives/" +strconv.Itoa(c)+".entry"
+	filename := "entries/" +strconv.Itoa(c)+".entry"
 	toReturn := ""
 	_, e := os.Stat(filename);
 	for e == nil {
 		postNum, _, subject, datetime, _, _, _, _, _ := parse_entries(filename)
-		toReturn += `<a href="`+path+`archives/`+postNum+`.html">`+datetime+`: `+subject+`</a><br>`
+		toReturn += `<a href="`+path+`entries/`+postNum+`.html">`+datetime+`: `+subject+`</a><br>`
 		c++
-		filename = "archives/" +strconv.Itoa(c)+".entry"
+		filename = "entries/" +strconv.Itoa(c)+".entry"
 		_, e = os.Stat(filename);
 	}
 
 	return toReturn;
 }
 
+
 func parse_months_archive() (string, map[string]bool) {
 	var extant map[string]bool
 	extant = make(map[string]bool)
 	c := 0
-	filename := "archives/" +strconv.Itoa(c)+".entry"
+	filename := "entries/" +strconv.Itoa(c)+".entry"
 	toReturn := ""
 	_, e := os.Stat(filename);
 	for e == nil {
@@ -516,12 +240,13 @@ func parse_months_archive() (string, map[string]bool) {
 		}
 
 		c++
-		filename = "archives/" +strconv.Itoa(c)+".entry"
+		filename = "entries/" +strconv.Itoa(c)+".entry"
 		_, e = os.Stat(filename);
 	}
 
 	return toReturn, extant;
 }
+
 
 func parse_comments(c []string) string {
 	var toReturn string
@@ -559,6 +284,7 @@ func parse_comments(c []string) string {
 	return toReturn
 }
 
+
 func search_picons(s string) []string {
 	var pBox []string
 	if(s=="") {
@@ -567,7 +293,7 @@ func search_picons(s string) []string {
 	} else {
 		atSign := strings.Index(s, "@");
 		//var mfPiconDatabases = new Array("domains/", "users/", "misc/", "usenix/", "unknown/");
-		mfPiconDatabases := [3]string{"domains/", "users/", "usenix/"}
+		mfPiconDatabases := [4]string{"domains/", "users/", "misc", "usenix/"}
 		count := 0
 		if (atSign != -1) { // if we have a valid e-mail address..
 			host := s[atSign + 1:len(s)]
@@ -622,6 +348,7 @@ func search_picons(s string) []string {
 	return pBox
 }
 
+
 func is_valid_email() string {
 	e, err := mail.ParseAddress("alice@example.com")
 	if err == nil {
@@ -630,13 +357,14 @@ func is_valid_email() string {
 	return ""
 }
 
+
 func to_markdown(s string) string {
 	return strings.Replace(s, "|*|", "<br>", -1)
 }
 
 
 func parse_emoticons(s string) string {
-	e_path := "<img src="+path+"emoticons/"
+	e_path := "<img src="+path+"img/emoticons/"
 	s = strings.Replace(s,":angry:",e_path+"angry.gif>",-1)
 	s = strings.Replace(s,">:(",e_path+"angry.gif>",-1)
 	s = strings.Replace(s,":laugh:",e_path+"laugh.gif>",-1)
@@ -682,4 +410,300 @@ func parse_emoticons(s string) string {
 	s = strings.Replace(s,":*",e_path+"kiss.gif>",-1)
 
 	return s
+}
+
+
+func generate_posts(subject string, archive_name string, month string, year string, prev_post string, next_post string, name string, datetime string, postNum string, content string, more_content string, num_comments string, comments []string) string {
+	toReturn := `<!DOCTYPE HTML>
+<head><title>`+title+`: `+subject+`</title>
+<meta charset="UTF-8">
+<meta name="generator" content="DarkMatter 1.8.3">
+<link rel="stylesheet" href="`+path+`css/gm.css">
+<link rel="stylesheet" href="`+path+`css/face.css">
+</head>
+<body>
+<div id="frame">
+<h1 id="header" class="header">`+title+`</h1>
+<!-- <div id="contentright">
+{sidebar}
+</div>-->
+<div class="path"><a href="`+path+`index.html" title="back to frontpage">Home</a> &raquo; <a href="`+path+`entries/index.html" title="weblog entries">Entries</a> &raquo; <a href="`+path+`entries/`+archive_name+`.html" title="archive of `+month+" " + year+`">`+month+" " + year+`</a> &raquo; `+subject+`</div>
+<div class="direction">
+`+prev_post+" "+next_post+`
+</div>
+<div id="contentcenter">
+<div class="post">
+
+<h2 class="h2_full">`+subject+`</h2>
+<div class="info info_archive">`+name+` on `+datetime+` [<a href="`+path+`entries/`+postNum+`.html" title="`+subject+`">permalink</a>]
+</div>
+<p>
+`+content+`
+</p>
+<hr>
+<p style="margin:0">
+`+more_content+`
+</p>
+</div>
+
+<script src="`+path+`face/xface.js"></script>
+<script src="`+path+`face/md5-call.js"></script>
+<script src="`+path+`face/md5-impl.js"></script>
+<script src="`+path+`face/main.js"></script>
+<script>gCount = 0;</script>
+<div id="comments">
+<a name="comments"> </a>
+<p align="center">
+<strong>Replies: `+num_comments+` Comments</strong>
+</p>
+`+parse_comments(comments)+`
+<!-- commentsform code begin -->
+<div align="center">
+<form id="new_comment_box" action="`+path+`cgi-bin/gm-comments.cgi#comments" method="post" name="newcomment" display="block">
+
+<input name="newcommententrynumber" type="hidden" value="2">
+<span style="font-weight:bold;">New Comment</span>
+
+<input name="newcommentauthor" placeholder="name" type="text" class="text">
+<input name="newcommentemail" placeholder="email" type="text" class="text">
+<input name="newcommentxface" placeholder="x-face" type="text" class="text">
+<input name="newcommentface" placeholder="face" type="text" class="text">
+<input name="newcommenthomepage" placeholder="homepage" type="text" class="text">
+
+<div id="input_box">
+<div id="emoticons">
+Smilies:
+<div>
+<img onclick="commentEmoticon(':)')" src="`+path+`img/emoticons/smile.gif" alt="smile">
+<img onclick="commentEmoticon(':O')" src="`+path+`img/emoticons/shocked.gif" alt="shocked">
+<img onclick="commentEmoticon(':(')" src="`+path+`img/emoticons/sad.gif" alt="sad">
+</div>
+
+<div>
+<img onclick="commentEmoticon(':D')" src="`+path+`img/emoticons/biggrin.gif" alt="big grin">
+<img onclick="commentEmoticon(':P')" src="`+path+`img/emoticons/tongue.gif" alt="razz">
+<img onclick="commentEmoticon(';)')" src="`+path+`img/emoticons/wink.gif" alt="*wink wink* hey baby">
+</div>
+
+<div>
+<img onclick="commentEmoticon(':angry:')" src="`+path+`img/emoticons/angry.gif" alt="angry, grr">
+<img onclick="commentEmoticon(':blush:')" src="`+path+`img/emoticons/blush.gif" alt="blush">
+<img onclick="commentEmoticon(':confused:')" src="`+path+`img/emoticons/confused.gif" alt="confused">
+</div>
+
+<div>
+<img onclick="commentEmoticon(':cool:')" src="`+path+`img/emoticons/cool.gif" alt="cool">
+<img onclick="commentEmoticon(':crazy:')" src="`+path+`img/emoticons/crazy.gif" alt="crazy">
+<img onclick="commentEmoticon(':cry:')" src="`+path+`img/emoticons/cry.gif" alt="cry">
+</div>
+
+<div>
+<img onclick="commentEmoticon(':doze:')" src="`+path+`img/emoticons/doze.gif" alt="sleepy">
+<img onclick="commentEmoticon(':hehe:')" src="`+path+`img/emoticons/hehe.gif" alt="hehe">
+<img onclick="commentEmoticon(':laugh:')" src="`+path+`img/emoticons/laugh.gif" alt="LOL">
+</div>
+
+<div>
+<img onclick="commentEmoticon(':plain:')" src="`+path+`img/emoticons/plain.gif" alt="plain jane">
+<img onclick="commentEmoticon(':rolleyes:')" src="`+path+`img/emoticons/rolleyes.gif" alt="rolls eyes">
+<img onclick="commentEmoticon(':satisfied:')" src="`+path+`img/emoticons/satisfied.gif" alt="satisfied">
+</div></div>
+
+<textarea name="newcommentbody"></textarea>
+</div>
+<div>
+<input id="bakecookie" name="bakecookie" type="checkbox">Save Info?
+<label for="bakecookie">
+<span></span>
+</label>
+</div>
+<input type="reset" value="Reset" class="button">
+<input name="gmpostpreview" type="submit" value="Preview" class="button">
+<input type="submit" value="Submit" class="button"  onClick="javascript:setGMlocalStorage()">
+</form>
+</div>
+<script>
+function commentEmoticon(code)
+{
+	var cache = document.newcomment.newcommentbody.value;
+	document.newcomment.newcommentbody.value = cache + " " + code;
+}
+document.newcomment.newcommentauthor.value = localStorage.getItem("gmcmtauth");
+document.newcomment.newcommentemail.value = localStorage.getItem("gmcmtmail");
+document.newcomment.newcommenthomepage.value = localStorage.getItem("gmcmthome");
+function setGMlocalStorage(){
+if(document.getElementById("bakecookie").checked){
+	localStorage.setItem("gmcmtauth", document.newcomment.newcommentauthor.value);
+	localStorage.setItem("gmcmtmail", document.newcomment.newcommentemail.value);
+	localStorage.setItem("gmcmthome", document.newcomment.newcommenthomepage.value);
+}else{ localStorage.removeItem("gmcmtauth");localStorage.removeItem("gmcmtmail");localStorage.removeItem("gmcmthome"); }}</script>
+<!-- commentsform code end -->
+</div>
+</div><div id="contentsidebar"><div><a href="`+path+`index.html">Home</a><br>
+<a href="`+path+`entries/index.html">Entries</a><br>
+
+<a href="#">Fake Link One</a><br>
+<a href="#">Fake Link Two</a><br>
+<a href="#">Fake Link Three</a><br><br>
+
+<a href="https://github.com/JohnDDuncanIII/DarkMatter/" target="_blank">Greymatter Forums</a></div>
+<hr>
+<!-- calendar code begin -->
+<!-- calendar code end -->
+<hr>
+<!-- searchform code begin -->
+<div class="searchform">
+<form action="`+path+`cgi-bin/gm-comments.cgi" method="post"><div><input type="text" name="gmsearch" class="text"></div>
+<div><input type="submit" value="Search" class="button"></div></form></div>
+<!-- searchform code end -->
+<hr>
+<div align="center">
+<a href="https://github.com/JohnDDuncanIII/DarkMatter/" target="_top"><img src="`+path+`img/dm_1.8.3.gif" alt="Powered By Greymatter"></a><a href="http://validator.w3.org/check/referer"><img src="`+path+`img/w3c.png" alt="Valid HTML5!"></a>
+</div>
+</div>
+</div>
+<script src="`+path+`js/scroll.js"></script>
+</body>`
+	return toReturn
+}
+
+func generate_archive (log_arch string) string {
+	toReturn := `<!DOCTYPE HTML>
+<html><head><title>`+title+`</title>
+<meta charset="UTF-8">
+<meta name="generator" content="DarkMatter 1.8.3">
+<link rel="stylesheet" href="`+path+`css/gm.css">
+</head>
+<body>
+<div id="frame">
+<h1 id="header" class="header"> `+title+` </h1>
+
+<!-- <div id="contentright">
+{sidebar}
+</div>-->
+<div class="path"><a href="`+path+`index.html" title="back to frontpage">Home</a> &raquo; Entries</div>
+<div id="contentcenter">
+<div class="content">
+<h1>Log Entries</h1>
+<p>`+log_arch+`</p>
+</div>
+<div class="content">
+<h1>Entries</h1>
+<p>`+parse_entries_archive()+`</p>
+</div>
+</div><div id="contentsidebar"><div><a href="`+path+`index.html">Home</a><br>
+<a href="`+path+`entries/index.html">Entries</a><br>
+
+<a href="#">Fake Link One</a><br>
+<a href="#">Fake Link Two</a><br>
+<a href="#">Fake Link Three</a><br><br>
+
+<a href="https://github.com/JohnDDuncanIII/DarkMatter/" target="_blank">Greymatter Forums</a></div>
+<hr>
+<!-- calendar code begin -->
+<!-- calendar code end -->
+<hr>
+<!-- searchform code begin -->
+<div class="searchform">
+<form action="`+path+`cgi-bin/gm-comments.cgi" method="post"><div><input type="text" name="gmsearch" class="text"></div>
+<div><input type="submit" value="Search" class="button"></div></form></div>
+<!-- searchform code end -->
+<hr>
+<div align="center">
+<a href="https://github.com/JohnDDuncanIII/DarkMatter/" target="_top"><img src="`+path+`img/dm_1.8.3.gif" alt="Powered By Greymatter"></a><a href="http://validator.w3.org/check/referer"><img src="`+path+`img/w3c.png" alt="Valid HTML5!"></a>
+</div>
+</div><!-- https://github.com/JohnDDuncanIII/DarkMatter/-->
+</div>
+<script src="`+path+`js/scroll.js"></script>
+</body>`
+
+	return toReturn
+}
+
+
+func generate_archive_month(months_archive string) string {
+	toReturn := `<!DOCTYPE HTML>
+<head><title>`+title+`</title>
+<meta charset="UTF-8">
+<meta name="generator" content="DarkMatter 1.8.3">
+<link rel="stylesheet" href="`+path+`css/gm.css">
+</head>
+<body>
+<div id="frame">
+<h1 id="header" class="header"> `+title+` </h1>
+<!-- <div id="contentright">
+{sidebar}
+</div>-->
+<div id="contentcenter">
+`+months_archive+`
+</div><div id="contentsidebar"><div><a href="`+path+`index.html">Home</a><br>
+<a href="`+path+`entries/index.html">Entries</a><br>
+
+<a href="#">Fake Link One</a><br>
+<a href="#">Fake Link Two</a><br>
+<a href="#">Fake Link Three</a><br><br>
+
+<a href="https://github.com/JohnDDuncanIII/DarkMatter/" target="_blank">Greymatter Forums</a></div>
+<hr>
+<!-- calendar code begin -->
+<!-- calendar code end -->
+<hr>
+<!-- searchform code begin -->
+<div class="searchform">
+<form action="`+path+`cgi-bin/gm-comments.cgi" method="post"><div><input type="text" name="gmsearch" class="text"></div>
+<div><input type="submit" value="Search" class="button"></div></form></div>
+<!-- searchform code end -->
+<hr>
+<div align="center">
+<a href="https://github.com/JohnDDuncanIII/DarkMatter/" target="_top"><img src="`+path+`img/dm_1.8.3.gif" alt="Powered By Greymatter"></a><a href="http://validator.w3.org/check/referer"><img src="`+path+`img/w3c.png" alt="Valid HTML5!"></a>
+</div>
+</div><!-- https://github.com/JohnDDuncanIII/DarkMatter/-->
+</div>
+<script src="`+path+`js/scroll.js"></script>
+</body>`
+	return toReturn
+}
+
+
+func generate_index (index_archive string) string {
+	toReturn := `<!DOCTYPE HTML>
+<head><title>`+title+`</title>
+<meta charset="UTF-8">
+<meta name="generator" content="DarkMatter 1.8.3">
+<link rel="stylesheet" href="`+path+`css/gm.css">
+</head>
+<body>
+<div id="frame">
+<h1 id="header" class="header"> `+title+` </h1>
+<!--<div id="contentright">
+{sidebar}
+</div>-->
+<div id="contentcenter">
+`+index_archive+`
+</div><div id="contentsidebar"><div><a href="`+path+`index.html">Home</a><br>
+<a href="`+path+`entries/index.html">Entries</a><br>
+
+<a href="#">Fake Link One</a><br>
+<a href="#">Fake Link Two</a><br>
+<a href="#">Fake Link Three</a><br><br>
+
+<a href="https://github.com/JohnDDuncanIII/DarkMatter/" target="_blank">Greymatter Forums</a></div>
+<hr>
+<!-- calendar code begin -->
+<!-- calendar code end -->
+<hr>
+<!-- searchform code begin -->
+<div class="searchform">
+<form action="`+path+`cgi-bin/gm-comments.cgi" method="post"><div><input type="text" name="gmsearch" class="text"></div>
+<div><input type="submit" value="Search" class="button"></div></form></div>
+<!-- searchform code end -->
+<hr>
+<div align="center">
+<a href="https://github.com/JohnDDuncanIII/DarkMatter/" target="_top"><img src="`+path+`img/dm_1.8.3.gif" alt="Powered By Greymatter"></a><a href="http://validator.w3.org/check/referer"><img src="`+path+`img/w3c.png" alt="Valid HTML5!"></a>
+</div>
+</div>
+</div>
+<script src="`+path+`js/scroll.js"></script>
+</body>`
+	return toReturn
 }
