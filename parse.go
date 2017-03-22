@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/mail"
 	"os"
+	"sort"
 	"strings"
 	"strconv"
 	"time"
@@ -76,11 +77,14 @@ func main() {
 	}
 
 	index_archive := ""
-	for k, _ := range extant {
+	// http://stackoverflow.com/questions/18342784/how-to-iterate-through-a-map-in-golang-in-order
+	keys := []string{}
+	for k, _ := range extant { keys = append(keys,k) }
+	sort.Strings(keys)
+	for _, k := range keys {
 		month_year := strings.Split(k, "/")
 		year := month_year[1]
 		month := month_year[0]
-		fmt.Println(year + " " + month)
 		months_archive := parse_months_archive_write(month, year)
 		index_archive += months_archive
 
@@ -99,7 +103,7 @@ func main() {
 	if archive_index_write != nil {
 		panic(archive_index_write)
 	}
-
+	fmt.Println("Success!")
 }
 
 
@@ -145,11 +149,11 @@ func parse_months_archive_write(m string, y string) string {
 		filename = "entries/" +strconv.Itoa(c)+".entry"
 		_, e = os.Stat(filename);
 	}
-	for k, _ := range day_map {
+	for k, _ := range day_map { // dangerous! fix this
 		day_map[k] += `</div><!-- end post -->
 <br>`
 	}
-	for _, v := range day_map {
+	for _, v := range day_map { // dangerous! fix this
 		toReturn += v
 	}
 	return toReturn;
