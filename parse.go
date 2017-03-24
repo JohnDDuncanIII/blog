@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
-	"net/mail"
 	"os"
 	"sort"
 	"strings"
@@ -14,7 +13,7 @@ import (
 )
 
 // user defined variables (this will be dynamic soon)
-var path string = "file:///C:/Users/duncjo01/Documents/MobaXterm/home/workspace_Go/faces/"
+var path string = "file:///C:/Users/duncjo01/Documents/home/duncjo01/workspace_Go/src/github.com/JohnDDuncanIII/faces/"
 var title = "John's Weblog"
 var date_format = "Monday, January 2 2006 at 3:04pm"
 
@@ -69,8 +68,10 @@ func main() {
 		filename = "entries/" +strconv.Itoa(entry_num)+".entry"
 		_, e = os.Stat(filename);
 	}
-	log_arch, extant := parse_months_archive()
-	archive:= generate_archive(log_arch)
+	months, extant_months := parse_months_archive()
+	years, extant_years := parse_years_archive()
+
+	archive:= generate_archive(months, years)
 	archive_write := ioutil.WriteFile("entries/index.html", []byte(archive), 0644)
 	if archive_write != nil {
 		panic(archive_write)
@@ -78,17 +79,36 @@ func main() {
 
 	index_archive := ""
 	// http://stackoverflow.com/questions/18342784/how-to-iterate-through-a-map-in-golang-in-order
-	keys := []string{}
-	for k, _ := range extant { keys = append(keys,k) }
-	sort.Strings(keys)
-	for _, k := range keys {
+	keys_months := []string{}
+	for k, _ := range extant_months { keys_months = append(keys_months,k) }
+	sort.Strings(keys_months)
+
+	keys_years := []string{}
+	for k, _ := range extant_years { keys_years = append(keys_years,k) }
+	sort.Strings(keys_years)
+
+	for _, k := range keys_years {
+		year := k
+		years_archive := parse_years_archive_write(year)
+
+		archive_year:= generate_archive_year(years_archive, year)
+		if _, err := os.Stat("entries/"+year+"/"); os.IsNotExist(err) {
+			os.Mkdir("entries/"+year, os.ModePerm)
+		}
+		archive_year_write := ioutil.WriteFile("entries/"+year+"/index.html", []byte(archive_year), 0644)
+		if archive_year_write != nil {
+			panic(archive_year_write)
+		}
+	}
+
+	for _, k := range keys_months {
 		month_year := strings.Split(k, "/")
 		year := month_year[1]
 		month := month_year[0]
 		months_archive := parse_months_archive_write(month, year)
 		index_archive += months_archive
 
-		archive_month:= generate_archive_month(months_archive)
+		archive_month:= generate_archive_month(months_archive, month, year)
 		if _, err := os.Stat("entries/"+year+"/"); os.IsNotExist(err) {
 			os.Mkdir("entries/"+year, os.ModePerm)
 		}
@@ -149,16 +169,111 @@ func parse_months_archive_write(m string, y string) string {
 		filename = "entries/" +strconv.Itoa(c)+".entry"
 		_, e = os.Stat(filename);
 	}
-	for k, _ := range day_map { // dangerous! fix this
-		day_map[k] += `</div><!-- end post -->
-<br>`
+
+	for k, _ := range day_map { // order doesn't matter here...
+		day_map[k] += `</div><!-- end post -->`
 	}
-	for _, v := range day_map { // dangerous! fix this
-		toReturn += v
+
+	vals := []string{}
+	for _, v := range day_map { vals = append(vals,v) }
+	sort.Strings(vals)
+	for _, k := range vals {
+		toReturn += k
 	}
+
 	return toReturn;
 }
 
+func parse_years_archive_write(y string) string {
+	c := 0
+	toReturn := ""
+	filename := "entries/" +strconv.Itoa(c)+".entry"
+	//var day_map map[string]string
+	//day_map = make(map[string]string)
+
+	var month_map map[string]string
+	month_map = make(map[string]string)
+	_, e := os.Stat(filename);
+	for e == nil {
+		//day_html := ""
+		month_html := ""
+		postNum, name, subject, datetime, _, content, more_content, _, num_comments := parse_entries(filename)
+		t, err:= time.Parse(date_format, datetime)
+		if err != nil {
+			fmt.Println(err)
+		}
+		day := strconv.Itoa(t.Day())
+		month := t.Month().String()
+		year := strconv.Itoa(t.Year())
+		if y == year {
+			if(month_map[month] == "") {
+				month_map[month] += `<div class="post">
+<span class="raised">`+month + " " +year+`</span>`
+			}
+			/*if(day_map[day] == "") {
+				day_map[day] += `<div class="post">
+<span class="raised">`+month +" "+ day+" " +year+`</span>`
+			}*/
+
+			month_html += `<div class="content">
+<h2>`+subject+`</h2>
+<p>
+`+content+`
+</p>
+<hr width="50%">
+<p style="margin:0">
+`+more_content+`
+</p>
+<div class="info">`+name+` on `+datetime+` [<a href="`+path+`entries/`+postNum+`.html" title="`+month+"/"+day+"/"+year+`: `+subject+`">link</a>][<a href="`+path+`entries/`+postNum+`.html#comments">`+num_comments+` Comments</a>]</div>
+</div><hr>
+`
+			month_map[month] += month_html
+
+			/*day_html += `<div class="content">
+<h2>`+subject+`</h2>
+<p>
+`+content+`
+</p>
+<hr width="50%">
+<p style="margin:0">
+`+more_content+`
+</p>
+<div class="info">`+name+` on `+datetime+` [<a href="`+path+`entries/`+postNum+`.html" title="`+month+"/"+day+"/"+year+`: `+subject+`">link</a>][<a href="`+path+`entries/`+postNum+`.html#comments">`+num_comments+` Comments</a>]</div>
+</div><hr>
+`
+			day_map[day] += day_html*/
+		}
+
+		c++
+		filename = "entries/" +strconv.Itoa(c)+".entry"
+		_, e = os.Stat(filename);
+	}
+
+	/*for k, _ := range day_map { // order doesn't matter here...
+		day_map[k] += `</div><!-- end post -->
+<br>`
+	}*/
+
+	for k, _ := range month_map { // order doesn't matter here...
+		month_map[k] += `</div><!-- end post -->`
+	}
+
+	/*m_vals := []string{}
+	for _, v := range day_map { m_vals = append(m_vals,v) }
+	sort.Strings(m_vals)
+	for _, k := range m_vals {
+		toReturn += k
+	}*/
+
+	y_vals := []string{}
+	for _, v := range month_map { y_vals = append(y_vals,v) }
+	sort.Strings(y_vals)
+	for _, k := range y_vals {
+		toReturn += k
+	}
+
+	return toReturn;
+}
 
 func parse_entries(filename string) (string, string, string, string, string, string, string, []string, string) {
 	file, e := os.Open(filename)
@@ -213,7 +328,7 @@ func parse_entries_archive() string {
 	_, e := os.Stat(filename);
 	for e == nil {
 		postNum, _, subject, datetime, _, _, _, _, _ := parse_entries(filename)
-		toReturn += `<a href="`+path+`entries/`+postNum+`.html">`+datetime+`: `+subject+`</a><br>`
+		toReturn += `<a href="`+path+`entries/`+postNum+`.html">`+subject+`: `+datetime+`</a><br>`
 		c++
 		filename = "entries/" +strconv.Itoa(c)+".entry"
 		_, e = os.Stat(filename);
@@ -251,9 +366,41 @@ func parse_months_archive() (string, map[string]bool) {
 	return toReturn, extant;
 }
 
+func parse_years_archive() (string, map[string]bool) {
+	var extant map[string]bool
+	extant = make(map[string]bool)
+	c := 0
+	filename := "entries/" +strconv.Itoa(c)+".entry"
+	toReturn := ""
+	_, e := os.Stat(filename);
+	for e == nil {
+		_, _, _, datetime, _, _, _, _, _ := parse_entries(filename)
+		t, err:= time.Parse(date_format, datetime)
+		if err != nil {
+			fmt.Println(err)
+		}
+		year := strconv.Itoa(t.Year())
+		if(!extant[year]) {
+			extant[year] = true
+			toReturn += `<a href="`+ year + `/index.html">`+ year +`</a><br>`
+		}
+
+		c++
+		filename = "entries/" +strconv.Itoa(c)+".entry"
+		_, e = os.Stat(filename);
+	}
+
+	return toReturn, extant;
+}
+
 
 func parse_comments(c []string) string {
 	var toReturn string
+	//var c_arr []string
+	//ct := -1 // counter for overall comments
+	//sub_ct := 1 // counter for replies
+	//isPrevChild := false // determine whether we need to close a div or not
+
 	for index := range c {
 		cmt_splt := strings.Split(c[index],"¦")
 		cmt_name := cmt_splt[0]
@@ -269,22 +416,63 @@ func parse_comments(c []string) string {
 		cmt_content = parse_emoticons(cmt_content)
 		cmt_face := cmt_splt[6]
 		cmt_xface := cmt_splt[7]
+		//cmt_deeper := cmt_splt[8]
+		deeper := ""
 
+		/*if(cmt_deeper != "") {
+			isPrevChild = true
+			if(len(cmt_deeper) < sub_ct) {
+				for i:= 1; i < sub_ct; i++ {
+					c_arr[ct] += `</div>
+`
+				}
 
+				sub_ct = len(cmt_deeper)
+			}
 
-		toReturn += `<div id="comment`+strconv.Itoa(index)+`"><div id="facesBox`+strconv.Itoa(index)+`" class="facesBox"><div id="picons`+strconv.Itoa(index)+`" class="picons">`+strings.Replace(strings.Trim(fmt.Sprint(search_picons(cmt_email)), "[]"), "> ", ">", -1)+`</div></div><p style="margin-top:0" align="left"> on `+cmt_datetime+`, <a href="`+cmt_hmpg+`" target="_new">`+cmt_name+`</a> [<a href="mailto:`+cmt_email+`" rel="nofollow">e-mail</a>] said
+			deeper = " deeper"
+			sub_ct++
+		} else {
+			// close out any child divs that may exist at the end of parent
+			for i:= 1; i < sub_ct; i++ {
+				c_arr[ct] += `</div>
+`
+				if(i == (sub_ct - 1)){
+					sub_ct = 1
+					c_arr[ct] += `</div>
+`
+					//reset = true
+				}
+			}
+			// close out standard divs that do not contain any children
+			if(ct > -1) {
+				if(!isPrevChild) {
+					c_arr[ct] += `</div>
+`
+				}
+			}
+			c_arr = append(c_arr, "")
+			ct++
+			isPrevChild = false
+		}*/
+
+		toReturn += `<div id="comment`+strconv.Itoa(index)+`" class="commentBox`+deeper+`"><div id="facesBox`+strconv.Itoa(index)+`" class="facesBox"><div id="picons`+strconv.Itoa(index)+`" class="picons">`+strings.Replace(strings.Trim(fmt.Sprint(search_picons(cmt_email)), "[]"), "> ", ">", -1)+`</div></div><p style="margin-top:0" align="left"> on `+cmt_datetime+`, <a href="`+cmt_hmpg+`" target="_new">`+cmt_name+`</a> [<a href="mailto:`+cmt_email+`" rel="nofollow">e-mail</a>] said
 </p><p align="justify">
 `+cmt_content+`
-</p></div><script>doGravatar("`+cmt_email+`");`
+</p><script>doGravatar("`+cmt_email+`");`
 		if cmt_face != "" {
 			toReturn += "doFace(\""+cmt_face+"\");"
 		}
 		if cmt_xface != "" {
 			toReturn += "doXFace(\""+cmt_xface+"\");"
 		}
-		toReturn += "gCount++;</script><hr>"
-
+		toReturn += `gCount++;</script><hr></div>
+`
 	}
+	/*for _,element := range c_arr {
+		toReturn += element
+	}*/
+
 	return toReturn
 }
 
@@ -353,13 +541,7 @@ func search_picons(s string) []string {
 }
 
 
-func is_valid_email() string {
-	e, err := mail.ParseAddress("alice@example.com")
-	if err == nil {
-		return e.Name+e.Address
-	}
-	return ""
-}
+
 
 
 func to_markdown(s string) string {
@@ -431,7 +613,7 @@ func generate_posts(subject string, archive_name string, month string, year stri
 <!-- <div id="contentright">
 {sidebar}
 </div>-->
-<div class="path"><a href="`+path+`index.html" title="back to frontpage">Home</a> &raquo; <a href="`+path+`entries/index.html" title="weblog entries">Entries</a> &raquo; <a href="`+path+`entries/`+archive_name+`.html" title="archive of `+month+" " + year+`">`+month+" " + year+`</a> &raquo; `+subject+`</div>
+<div class="path"><a href="`+path+`index.html" title="back to frontpage">Home</a> &raquo; <a href="`+path+`entries/index.html" title="weblog entries">Entries</a> &raquo; <a href="`+path+`entries/`+year+`/index.html" title="archive of `+year+`">`+year+`</a> &raquo; <a href="`+path+`entries/`+year+"/"+month+`.html" title="archive of `+month+`">`+month+`</a> &raquo; `+subject+`</div>
 <div class="direction">
 `+prev_post+" "+next_post+`
 </div>
@@ -451,7 +633,6 @@ func generate_posts(subject string, archive_name string, month string, year stri
 </div>
 
 <script src="`+path+`face/xface.js"></script>
-<script src="`+path+`face/md5-call.js"></script>
 <script src="`+path+`face/md5-impl.js"></script>
 <script src="`+path+`face/main.js"></script>
 <script>gCount = 0;</script>
@@ -550,7 +731,7 @@ if(document.getElementById("bakecookie").checked){
 <a href="#">Fake Link Two</a><br>
 <a href="#">Fake Link Three</a><br><br>
 
-<a href="https://github.com/JohnDDuncanIII/DarkMatter/" target="_blank">Greymatter Forums</a></div>
+<a href="https://github.com/JohnDDuncanIII/DarkMatter/" target="_blank">DarkMatter Source</a></div>
 <hr>
 <!-- calendar code begin -->
 <!-- calendar code end -->
@@ -567,11 +748,12 @@ if(document.getElementById("bakecookie").checked){
 </div>
 </div>
 <script src="`+path+`js/scroll.js"></script>
-</body>`
+</body>
+`
 	return toReturn
 }
 
-func generate_archive (log_arch string) string {
+func generate_archive (months string, years string) string {
 	toReturn := `<!DOCTYPE HTML>
 <html><head><title>`+title+`</title>
 <meta charset="UTF-8">
@@ -588,8 +770,12 @@ func generate_archive (log_arch string) string {
 <div class="path"><a href="`+path+`index.html" title="back to frontpage">Home</a> &raquo; Entries</div>
 <div id="contentcenter">
 <div class="content">
-<h1>Log Entries</h1>
-<p>`+log_arch+`</p>
+<h1>Years</h1>
+<p>`+years+`</p>
+</div>
+<div class="content">
+<h1>Months</h1>
+<p>`+months+`</p>
 </div>
 <div class="content">
 <h1>Entries</h1>
@@ -602,7 +788,7 @@ func generate_archive (log_arch string) string {
 <a href="#">Fake Link Two</a><br>
 <a href="#">Fake Link Three</a><br><br>
 
-<a href="https://github.com/JohnDDuncanIII/DarkMatter/" target="_blank">Greymatter Forums</a></div>
+<a href="https://github.com/JohnDDuncanIII/DarkMatter/" target="_blank">DarkMatter Source</a></div>
 <hr>
 <!-- calendar code begin -->
 <!-- calendar code end -->
@@ -625,7 +811,7 @@ func generate_archive (log_arch string) string {
 }
 
 
-func generate_archive_month(months_archive string) string {
+func generate_archive_month(months_archive string, month string, year string) string {
 	toReturn := `<!DOCTYPE HTML>
 <head><title>`+title+`</title>
 <meta charset="UTF-8">
@@ -638,6 +824,7 @@ func generate_archive_month(months_archive string) string {
 <!-- <div id="contentright">
 {sidebar}
 </div>-->
+<div class="path"><a href="`+path+`index.html" title="back to frontpage">Home</a> &raquo; <a href="`+path+`entries/index.html" title="weblog entries">Entries</a> &raquo; <a href="`+path+`entries/`+year+`/index.html" title="archive of `+year+`">`+year+`</a> &raquo; `+month+`</div>
 <div id="contentcenter">
 `+months_archive+`
 </div><div id="contentsidebar"><div><a href="`+path+`index.html">Home</a><br>
@@ -647,7 +834,51 @@ func generate_archive_month(months_archive string) string {
 <a href="#">Fake Link Two</a><br>
 <a href="#">Fake Link Three</a><br><br>
 
-<a href="https://github.com/JohnDDuncanIII/DarkMatter/" target="_blank">Greymatter Forums</a></div>
+<a href="https://github.com/JohnDDuncanIII/DarkMatter/" target="_blank">DarkMatter Source</a></div>
+<hr>
+<!-- calendar code begin -->
+<!-- calendar code end -->
+<hr>
+<!-- searchform code begin -->
+<div class="searchform">
+<form action="`+path+`cgi-bin/gm-comments.cgi" method="post"><div><input type="text" name="gmsearch" class="text"></div>
+<div><input type="submit" value="Search" class="button"></div></form></div>
+<!-- searchform code end -->
+<hr>
+<div align="center">
+<a href="https://github.com/JohnDDuncanIII/DarkMatter/" target="_top"><img src="`+path+`img/dm_1.8.3.gif" alt="Powered By Greymatter"></a><a href="http://validator.w3.org/check/referer"><img src="`+path+`img/w3c.png" alt="Valid HTML5!"></a>
+</div>
+</div><!-- https://github.com/JohnDDuncanIII/DarkMatter/-->
+</div>
+<script src="`+path+`js/scroll.js"></script>
+</body>`
+	return toReturn
+}
+
+func generate_archive_year(years_archive string, year string) string {
+	toReturn := `<!DOCTYPE HTML>
+<head><title>`+title+`</title>
+<meta charset="UTF-8">
+<meta name="generator" content="DarkMatter 1.8.3">
+<link rel="stylesheet" href="`+path+`css/gm.css">
+</head>
+<body>
+<div id="frame">
+<h1 id="header" class="header"> `+title+` </h1>
+<!-- <div id="contentright">
+{sidebar}
+</div>-->
+<div class="path"><a href="`+path+`index.html" title="back to frontpage">Home</a> &raquo; <a href="`+path+`entries/index.html" title="weblog entries">Entries</a> &raquo; `+year+`</div>
+<div id="contentcenter">
+`+years_archive+`
+</div><div id="contentsidebar"><div><a href="`+path+`index.html">Home</a><br>
+<a href="`+path+`entries/index.html">Entries</a><br>
+
+<a href="#">Fake Link One</a><br>
+<a href="#">Fake Link Two</a><br>
+<a href="#">Fake Link Three</a><br><br>
+
+<a href="https://github.com/JohnDDuncanIII/DarkMatter/" target="_blank">DarkMatter Source</a></div>
 <hr>
 <!-- calendar code begin -->
 <!-- calendar code end -->
@@ -691,7 +922,7 @@ func generate_index (index_archive string) string {
 <a href="#">Fake Link Two</a><br>
 <a href="#">Fake Link Three</a><br><br>
 
-<a href="https://github.com/JohnDDuncanIII/DarkMatter/" target="_blank">Greymatter Forums</a></div>
+<a href="https://github.com/JohnDDuncanIII/DarkMatter/" target="_blank">DarkMatter Source</a></div>
 <hr>
 <!-- calendar code begin -->
 <!-- calendar code end -->
@@ -711,3 +942,5 @@ func generate_index (index_archive string) string {
 </body>`
 	return toReturn
 }
+
+
