@@ -7,8 +7,8 @@ import (
 	"log"
 	"os"
 	"sort"
-	"strings"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -37,7 +37,7 @@ func main() {
 	for e == nil {
 		postNum, name, subject, datetime, archive_name, content, more_content, comments, num_comments := parse_entries(filename)
 		// convert datetime back to time object
-		t, err:= time.Parse(date_format, datetime)
+		t, err := time.Parse(date_format, datetime)
 		if err != nil {
 			fmt.Println(err)
 		}
@@ -64,14 +64,16 @@ func main() {
 		if post_write != nil {
 			panic(post_write)
 		}
+
 		entry_num++
 		filename = "entries/" +strconv.Itoa(entry_num)+".entry"
 		_, e = os.Stat(filename);
 	}
-	months, extant_months := parse_months_archive()
-	years, extant_years := parse_years_archive()
+	//months, extant_months := parse_months_archive()
+	//years, extant_years := parse_years_archive()
+	days, months, extant_months, years, extant_years := parse_archive()
 
-	archive:= generate_archive(months, years)
+	archive:= generate_archive(days, months, years)
 	archive_write := ioutil.WriteFile("entries/index.html", []byte(archive), 0644)
 	if archive_write != nil {
 		panic(archive_write)
@@ -89,7 +91,8 @@ func main() {
 
 	for _, k := range keys_years {
 		year := k
-		years_archive := parse_years_archive_write(year)
+		//years_archive := parse_years_archive_write(year)
+		_, years_archive := parse_archive_write("-1", year)
 
 		archive_year:= generate_archive_year(years_archive, year)
 		if _, err := os.Stat("entries/"+year+"/"); os.IsNotExist(err) {
@@ -105,7 +108,8 @@ func main() {
 		month_year := strings.Split(k, "/")
 		year := month_year[1]
 		month := month_year[0]
-		months_archive := parse_months_archive_write(month, year)
+		//months_archive := parse_months_archive_write(month, year)
+		months_archive, _ := parse_archive_write(month, year)
 		index_archive += months_archive
 
 		archive_month:= generate_archive_month(months_archive, month, year)
@@ -124,155 +128,6 @@ func main() {
 		panic(archive_index_write)
 	}
 	fmt.Println("Success!")
-}
-
-
-func parse_months_archive_write(m string, y string) string {
-	c := 0
-	toReturn := ""
-	filename := "entries/" +strconv.Itoa(c)+".entry"
-	var day_map map[string]string
-	day_map = make(map[string]string)
-	_, e := os.Stat(filename);
-	for e == nil {
-		day_html := ""
-		postNum, name, subject, datetime, _, content, more_content, _, num_comments := parse_entries(filename)
-		t, err:= time.Parse(date_format, datetime)
-		if err != nil {
-			fmt.Println(err)
-		}
-		day := strconv.Itoa(t.Day())
-		month := t.Month().String()
-		year := strconv.Itoa(t.Year())
-		if m == month {
-			if(day_map[day] == "") {
-				day_map[day] += `<div class="post">
-<span class="raised">`+month +" "+ day+" " +year+`</span>`
-			}
-
-			day_html += `<div class="content">
-<h2>`+subject+`</h2>
-<p>
-`+content+`
-</p>
-<hr width="50%">
-<p style="margin:0">
-`+more_content+`
-</p>
-<div class="info">`+name+` on `+datetime+` [<a href="`+path+`entries/`+postNum+`.html" title="`+month+"/"+day+"/"+year+`: `+subject+`">link</a>][<a href="`+path+`entries/`+postNum+`.html#comments">`+num_comments+` Comments</a>]</div>
-</div><hr>
-`
-			day_map[day] += day_html
-		}
-
-		c++
-		filename = "entries/" +strconv.Itoa(c)+".entry"
-		_, e = os.Stat(filename);
-	}
-
-	for k, _ := range day_map { // order doesn't matter here...
-		day_map[k] += `</div><!-- end post -->`
-	}
-
-	vals := []string{}
-	for _, v := range day_map { vals = append(vals,v) }
-	sort.Strings(vals)
-	for _, k := range vals {
-		toReturn += k
-	}
-
-	return toReturn;
-}
-
-func parse_years_archive_write(y string) string {
-	c := 0
-	toReturn := ""
-	filename := "entries/" +strconv.Itoa(c)+".entry"
-	//var day_map map[string]string
-	//day_map = make(map[string]string)
-
-	var month_map map[string]string
-	month_map = make(map[string]string)
-	_, e := os.Stat(filename);
-	for e == nil {
-		//day_html := ""
-		month_html := ""
-		postNum, name, subject, datetime, _, content, more_content, _, num_comments := parse_entries(filename)
-		t, err:= time.Parse(date_format, datetime)
-		if err != nil {
-			fmt.Println(err)
-		}
-		day := strconv.Itoa(t.Day())
-		month := t.Month().String()
-		year := strconv.Itoa(t.Year())
-		if y == year {
-			if(month_map[month] == "") {
-				month_map[month] += `<div class="post">
-<span class="raised">`+month + " " +year+`</span>`
-			}
-			/*if(day_map[day] == "") {
-				day_map[day] += `<div class="post">
-<span class="raised">`+month +" "+ day+" " +year+`</span>`
-			}*/
-
-			month_html += `<div class="content">
-<h2>`+subject+`</h2>
-<p>
-`+content+`
-</p>
-<hr width="50%">
-<p style="margin:0">
-`+more_content+`
-</p>
-<div class="info">`+name+` on `+datetime+` [<a href="`+path+`entries/`+postNum+`.html" title="`+month+"/"+day+"/"+year+`: `+subject+`">link</a>][<a href="`+path+`entries/`+postNum+`.html#comments">`+num_comments+` Comments</a>]</div>
-</div><hr>
-`
-			month_map[month] += month_html
-
-			/*day_html += `<div class="content">
-<h2>`+subject+`</h2>
-<p>
-`+content+`
-</p>
-<hr width="50%">
-<p style="margin:0">
-`+more_content+`
-</p>
-<div class="info">`+name+` on `+datetime+` [<a href="`+path+`entries/`+postNum+`.html" title="`+month+"/"+day+"/"+year+`: `+subject+`">link</a>][<a href="`+path+`entries/`+postNum+`.html#comments">`+num_comments+` Comments</a>]</div>
-</div><hr>
-`
-			day_map[day] += day_html*/
-		}
-
-		c++
-		filename = "entries/" +strconv.Itoa(c)+".entry"
-		_, e = os.Stat(filename);
-	}
-
-	/*for k, _ := range day_map { // order doesn't matter here...
-		day_map[k] += `</div><!-- end post -->
-<br>`
-	}*/
-
-	for k, _ := range month_map { // order doesn't matter here...
-		month_map[k] += `</div><!-- end post -->`
-	}
-
-	/*m_vals := []string{}
-	for _, v := range day_map { m_vals = append(m_vals,v) }
-	sort.Strings(m_vals)
-	for _, k := range m_vals {
-		toReturn += k
-	}*/
-
-	y_vals := []string{}
-	for _, v := range month_map { y_vals = append(y_vals,v) }
-	sort.Strings(y_vals)
-	for _, k := range y_vals {
-		toReturn += k
-	}
-
-	return toReturn;
 }
 
 func parse_entries(filename string) (string, string, string, string, string, string, string, []string, string) {
@@ -320,79 +175,144 @@ func parse_entries(filename string) (string, string, string, string, string, str
 	return postNum, name, subject, datetime, archive_name, content, more_content, comments, num_comments
 }
 
+func parse_archive() (string, string, map[string]bool, string, map[string]bool) {
+	entry_num := 0
 
-func parse_entries_archive() string {
-	c := 0
-	filename := "entries/" +strconv.Itoa(c)+".entry"
-	toReturn := ""
-	_, e := os.Stat(filename);
+	day_r := ""
+
+	var m_extant map[string]bool
+	m_extant = make(map[string]bool)
+	month_r := ""
+
+	var y_extant map[string]bool
+	y_extant = make(map[string]bool)
+	year_r := ""
+
+
+	filename := "entries/" +strconv.Itoa(entry_num)+".entry"
+
+	_, e := os.Stat(filename)
 	for e == nil {
 		postNum, _, subject, datetime, _, _, _, _, _ := parse_entries(filename)
-		toReturn += `<a href="`+path+`entries/`+postNum+`.html">`+subject+`: `+datetime+`</a><br>`
-		c++
-		filename = "entries/" +strconv.Itoa(c)+".entry"
-		_, e = os.Stat(filename);
-	}
+		day_r += `<a href="`+path+`entries/`+postNum+`.html">`+subject+`: `+datetime+`</a><br>`
 
-	return toReturn;
-}
-
-
-func parse_months_archive() (string, map[string]bool) {
-	var extant map[string]bool
-	extant = make(map[string]bool)
-	c := 0
-	filename := "entries/" +strconv.Itoa(c)+".entry"
-	toReturn := ""
-	_, e := os.Stat(filename);
-	for e == nil {
-		_, _, _, datetime, _, _, _, _, _ := parse_entries(filename)
 		t, err:= time.Parse(date_format, datetime)
 		if err != nil {
 			fmt.Println(err)
 		}
 		month := t.Month().String()
 		year := strconv.Itoa(t.Year())
-		if(!extant[month+"/"+year]) {
-			extant[month+"/"+year] = true
-			toReturn += `<a href="`+ year +"/"+ month +`.html">`+ month + " " + year +`</a><br>`
+		if(!m_extant[month+"/"+year]) {
+			m_extant[month+"/"+year] = true
+			month_r += `<a href="`+ year +"/"+ month +`.html">`+ month + " " + year +`</a><br>`
+		}
+		if(!y_extant[year]) {
+			y_extant[year] = true
+			year_r += `<a href="`+ year + `/index.html">`+ year +`</a><br>`
 		}
 
-		c++
-		filename = "entries/" +strconv.Itoa(c)+".entry"
+		entry_num++
+		filename = "entries/" +strconv.Itoa(entry_num)+".entry"
 		_, e = os.Stat(filename);
 	}
 
-	return toReturn, extant;
+	return day_r, month_r, m_extant, year_r, y_extant;
 }
 
-func parse_years_archive() (string, map[string]bool) {
-	var extant map[string]bool
-	extant = make(map[string]bool)
-	c := 0
-	filename := "entries/" +strconv.Itoa(c)+".entry"
-	toReturn := ""
+func parse_archive_write(m string, y string) (string, string) {
+	entry_num := 0
+	month_r := ""
+	year_r := ""
+	filename := "entries/" +strconv.Itoa(entry_num)+".entry"
+	var day_map map[string]string
+	day_map = make(map[string]string)
+
+	var month_map map[string]string
+	month_map = make(map[string]string)
 	_, e := os.Stat(filename);
+
 	for e == nil {
-		_, _, _, datetime, _, _, _, _, _ := parse_entries(filename)
+		day_html := ""
+		month_html := ""
+		postNum, name, subject, datetime, _, content, more_content, _, num_comments := parse_entries(filename)
 		t, err:= time.Parse(date_format, datetime)
 		if err != nil {
 			fmt.Println(err)
 		}
+		day := strconv.Itoa(t.Day())
+		month := t.Month().String()
 		year := strconv.Itoa(t.Year())
-		if(!extant[year]) {
-			extant[year] = true
-			toReturn += `<a href="`+ year + `/index.html">`+ year +`</a><br>`
+		if y == year {
+			if(m == month) {
+				if(day_map[day] == "") {
+					day_map[day] += `<div class="post">
+<span class="raised">`+month +" "+ day+" " +year+`</span>`
+				}
+
+				day_html += `<div class="content">
+<h2>`+subject+`</h2>
+<p>
+`+content+`
+</p>
+<hr width="50%">
+<p style="margin:0">
+`+more_content+`
+</p>
+<div class="info">`+name+` on `+datetime+` [<a href="`+path+`entries/`+postNum+`.html" title="`+month+"/"+day+"/"+year+`: `+subject+`">link</a>][<a href="`+path+`entries/`+postNum+`.html#comments">`+num_comments+` Comments</a>]</div>
+</div><hr>
+`
+				day_map[day] += day_html
+			}
+
+			if(month_map[month] == "") {
+				month_map[month] += `<div class="post">
+<span class="raised">`+month + " " +year+`</span>`
+			}
+
+			month_html += `<div class="content">
+<h2>`+subject+`</h2>
+<p>
+`+content+`
+</p>
+<hr width="50%">
+<p style="margin:0">
+`+more_content+`
+</p>
+<div class="info">`+name+` on `+datetime+` [<a href="`+path+`entries/`+postNum+`.html" title="`+month+"/"+day+"/"+year+`: `+subject+`">link</a>][<a href="`+path+`entries/`+postNum+`.html#comments">`+num_comments+` Comments</a>]</div>
+</div><hr>
+`
+			month_map[month] += month_html
 		}
 
-		c++
-		filename = "entries/" +strconv.Itoa(c)+".entry"
+		entry_num++
+		filename = "entries/" +strconv.Itoa(entry_num)+".entry"
 		_, e = os.Stat(filename);
 	}
 
-	return toReturn, extant;
-}
+	for k, _ := range day_map { // order doesn't matter here...
+		day_map[k] += `</div><!-- end post -->`
+	}
 
+	for k, _ := range month_map { // order doesn't matter here...
+		month_map[k] += `</div><!-- end post -->`
+	}
+
+	m_vals := []string{}
+	for _, v := range day_map { m_vals = append(m_vals,v) }
+	sort.Strings(m_vals)
+	for _, k := range m_vals {
+		month_r += k
+	}
+
+	y_vals := []string{}
+	for _, v := range month_map { y_vals = append(y_vals,v) }
+	sort.Strings(y_vals)
+	for _, k := range y_vals {
+		year_r += k
+	}
+
+	return month_r, year_r;
+}
 
 func parse_comments(c []string) string {
 	var toReturn string
@@ -476,7 +396,7 @@ func parse_comments(c []string) string {
 	return toReturn
 }
 
-
+// TODO: move this to faces package
 func search_picons(s string) []string {
 	var pBox []string
 	if(s=="") {
@@ -540,10 +460,7 @@ func search_picons(s string) []string {
 	return pBox
 }
 
-
-
-
-
+// TODO: move this to manip package
 func to_markdown(s string) string {
 	return strings.Replace(s, "|*|", "<br>", -1)
 }
@@ -598,7 +515,8 @@ func parse_emoticons(s string) string {
 	return s
 }
 
-
+// TODO: move this to html/tmpl package
+// TODO: actually turn this into a separate template file
 func generate_posts(subject string, archive_name string, month string, year string, prev_post string, next_post string, name string, datetime string, postNum string, content string, more_content string, num_comments string, comments []string) string {
 	toReturn := `<!DOCTYPE HTML>
 <head><title>`+title+`: `+subject+`</title>
@@ -753,8 +671,8 @@ if(document.getElementById("bakecookie").checked){
 	return toReturn
 }
 
-func generate_archive (months string, years string) string {
-	toReturn := `<!DOCTYPE HTML>
+func generate_archive (days string, months string, years string) string {
+	archive := `<!DOCTYPE HTML>
 <html><head><title>`+title+`</title>
 <meta charset="UTF-8">
 <meta name="generator" content="DarkMatter 1.8.3">
@@ -779,7 +697,7 @@ func generate_archive (months string, years string) string {
 </div>
 <div class="content">
 <h1>Entries</h1>
-<p>`+parse_entries_archive()+`</p>
+<p>`+days+`</p>
 </div>
 </div><div id="contentsidebar"><div><a href="`+path+`index.html">Home</a><br>
 <a href="`+path+`entries/index.html">Entries</a><br>
@@ -807,12 +725,12 @@ func generate_archive (months string, years string) string {
 <script src="`+path+`js/scroll.js"></script>
 </body>`
 
-	return toReturn
+	return archive
 }
 
 
 func generate_archive_month(months_archive string, month string, year string) string {
-	toReturn := `<!DOCTYPE HTML>
+	archive_month := `<!DOCTYPE HTML>
 <head><title>`+title+`</title>
 <meta charset="UTF-8">
 <meta name="generator" content="DarkMatter 1.8.3">
@@ -852,11 +770,11 @@ func generate_archive_month(months_archive string, month string, year string) st
 </div>
 <script src="`+path+`js/scroll.js"></script>
 </body>`
-	return toReturn
+	return archive_month
 }
 
 func generate_archive_year(years_archive string, year string) string {
-	toReturn := `<!DOCTYPE HTML>
+	archive_year := `<!DOCTYPE HTML>
 <head><title>`+title+`</title>
 <meta charset="UTF-8">
 <meta name="generator" content="DarkMatter 1.8.3">
@@ -896,12 +814,12 @@ func generate_archive_year(years_archive string, year string) string {
 </div>
 <script src="`+path+`js/scroll.js"></script>
 </body>`
-	return toReturn
+	return archive_year
 }
 
 
 func generate_index (index_archive string) string {
-	toReturn := `<!DOCTYPE HTML>
+	main_index := `<!DOCTYPE HTML>
 <head><title>`+title+`</title>
 <meta charset="UTF-8">
 <meta name="generator" content="DarkMatter 1.8.3">
@@ -940,7 +858,5 @@ func generate_index (index_archive string) string {
 </div>
 <script src="`+path+`js/scroll.js"></script>
 </body>`
-	return toReturn
+	return main_index
 }
-
-
