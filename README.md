@@ -12,23 +12,40 @@ golang re-implementation of Noah Grey's Greymatter weblogging software
 
 # TODO:
 
-* administrator front-end
+* administrator front-end (probably clone gm.cgi layout from Greymatter)
 
-* comment submission
+* comment submission (see comment.go)
 
-* site search
+* site search (see search.go)
 
-* separate output for posts made by specific user
+* separate output for posts made by specific user (allow multiple users to run off of one instance; john.domain.com)
 
-* support for separate user repositories through [upspin](https://github.com/upspin/upspin)
+* support for user repositories through [upspin](https://github.com/upspin/upspin)
 
-* threaded comments
+* threaded comments (looking at a clean way of implementing this w/ the flat-file comment structure)
+
+* RSS/atom (1.0/2.0/0.3) syndication
 
 * move gravatar/X-Face parsing to back-end (currently parses every time through js)
 
 * add some sort of Face/X-Face standard for upspin identifiers (maybe unrelated to this project)
 
+* templating (add [Brad Fitzpatrick's](http://brad.livejournal.com/) default livejournal template; support custom HTML/CSS/JS (to a degree)
 
+* image upload for posts
 
+* tags/categories
 
+* trackbacks/linkbacks
 
+* geolocation
+
+* calendar (for archive and sidebar)
+
+* OpenID
+
+* scheduled posting
+
+# INSPIRATION
+
+[Noah Grey's](http://noahgrey.com/) [Greymatter](https://github.com/JohnDDuncanIII/greymatter/), [Brad Fitzpatrick's](http://bradfitz.com/) [LiveJournal](https://github.com/apparentlymart/livejournal), and [SixApart's](https://www.sixapart.jp/) [MovableType](https://github.com/movabletype/movabletype)

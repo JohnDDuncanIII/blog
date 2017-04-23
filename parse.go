@@ -90,14 +90,11 @@ func main() {
 
 			months_archive, _ := parse_archive_write(month, year)
 			index_archive += months_archive
-
 			archive_month:= generate_archive_month(months_archive, month, year)
 			if _, err := os.Stat("entries/" + year + "/"); os.IsNotExist(err) {
 				os.Mkdir("entries/" + year, os.ModePerm)
 			}
-
 			archive_month_write := ioutil.WriteFile("entries/" + year + "/" + month + ".html", []byte(archive_month), 0644)
-
 			if archive_month_write != nil {
 				panic(archive_month_write)
 			}
@@ -109,15 +106,11 @@ func main() {
 			years += `<a href="` + year + `/index.html">` + year + `</a><br>`
 
 			_, years_archive := parse_archive_write("-1", year)
-
 			archive_year := generate_archive_year(years_archive, year)
-
 			if _, err := os.Stat("entries/" + year+"/"); os.IsNotExist(err) {
 				os.Mkdir("entries/" + year, os.ModePerm)
 			}
-
 			archive_year_write := ioutil.WriteFile("entries/" + year + "/index.html", []byte(archive_year), 0644)
-
 			if archive_year_write != nil {
 				panic(archive_year_write)
 			}
@@ -159,7 +152,6 @@ func parse_archive_write(m string, y string) (string, string) {
 	year_r := ""
 	filename := "entries/" + strconv.Itoa(entry_num) + ".entry"
 	day_map := make(map[string]string)
-
 	month_map := make(map[string]string)
 	_, e := os.Stat(filename);
 
