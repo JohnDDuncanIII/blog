@@ -13,7 +13,7 @@ import (
 )
 
 // user defined variables (this will be dynamic soon)
-var path string = "file:///C:/cygwin64/home/John/go_workspace/faces/"
+var path string = "file:///C:/Users/john/go/src/github.com/JohnDDuncanIII/blog/"
 var title = "John's Weblog"
 var date_format = "Monday, January 2 2006 at 3:04pm"
 
