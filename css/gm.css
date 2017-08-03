@@ -1,5 +1,5 @@
 html {
-    image-rendering: optimizeSpeed;		/* STOP SMOOTHING, GIVE ME SPEED */
+    i\mage-rendering: optimizeSpeed;		/* STOP SMOOTHING, GIVE ME SPEED */
     image-rendering: -moz-crisp-edges;		/* Firefox*/
     image-rendering: -o-crisp-edges;		/* Opera */
     image-rendering: -webkit-optimize-contrast; /* Chrome (and eventually Safari) */
@@ -29,6 +29,7 @@ body {
     padding: 5px;
     background-color: white;
     background-image: url(data:image/gif;base64,R0lGODdhAwADAIABAPv7+////ywAAAAAAwADAAACA0RuWAA7);
+    box-shadow: 0 2px 6px rgba(100, 100, 100, 0.3);
 }
 /*#frame::after {
   content: " ";
@@ -158,10 +159,9 @@ a:hover {
     text-decoration: underline;
 }
 
-.button {
+/*.button {
     border: 1px solid #000;
-}
-
+}*/
 
 .raised {
     position: relative;
@@ -197,10 +197,19 @@ table.calendar { width: 100%; }
     border: 3px double black;
     padding: 5px;
 }
+
 .post {
     border: 3px double black;
     padding: 5px;
 }
+
+.post:not(:first-child) {
+    margin-top: 10px;
+}
+/*.post {
+    margin-top: 10px;
+}*/
+
 
 .info {
     border-bottom: 1px dotted black;
@@ -213,9 +222,7 @@ table.calendar { width: 100%; }
     border-bottom: none;
 }
 
-.direction {
-    padding-top: 2px;
-}
+.direction {}
 
 .entry-byline {
     font-size: 80%;
@@ -242,7 +249,6 @@ table.calendar { width: 100%; }
     top: 0;
     margin: 2px;
     cursor: pointer;
-    float: right;
 }
 
 #overlay{
@@ -298,13 +304,39 @@ input[type="checkbox"]:checked + label span {
     margin-right: 3px;
 }
 
-label {
-    cursor: pointer;
+/* input fields */
+input[type="reset"], select, textarea, input[type="text"], input[type="date"], input[type="button"], input[type="submit"], button {
+    border: 1px double black;
+    margin-bottom: 3px;
+    box-shadow: 2px 2px 0px -1px black;
 }
 
+input[type="reset"]:hover, input[type="reset"]:focus, select:hover, select:focus, textarea:hover, textarea:focus, input[type="text"]:hover, input[type="text"]:focus, input[type="date"]:hover, input[type="date"]:focus, input[type="button"]:hover, input[type="submit"]:hover, button:hover {
+    border-color: blue;
+}
 
+input[type="reset"]:active, input[type="button"]:active, input[type="submit"]:active, button:active {
+    box-shadow: none;
+    margin-left: 1px;
+    margin-top: 1px;
+    margin-bottom: 2px;
+}
 
+label {
+    cursor: pointer;
+    -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none; /* Safari */
+    -khtml-user-select: none; /* Konqueror HTML */
+    -moz-user-select: none; /* Firefox */
+    -ms-user-select: none; /* Internet Explorer/Edge */
+    user-select: none; /* Non-prefixed version, currently
+                                  supported by Chrome and Opera */
+}
 
-/*input[type=checkbox]:checked {
-    list-style-image: url("img/toggle_16_on_hlt.xbm.gif");
-}*/
+.deeper {
+    padding-left: 0.5em;
+}
+
+.facesBox {
+    background: white;
+}

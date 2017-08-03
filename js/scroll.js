@@ -1,4 +1,4 @@
-var img = document.createElement("img");
+var img = document.createElement("span");
 img.id = "settings";
 img.className = "settings";
 document.getElementById("frame").appendChild(img);
