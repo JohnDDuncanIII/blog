@@ -13,7 +13,7 @@ import (
 )
 
 // user defined variables (this will be dynamic soon)
-var path string = "file:///C:/Users/duncjo01/Documents/home/duncjo01/workspace_Go/src/github.com/JohnDDuncanIII/faces/"
+var path string = "file:///C:/Users/john/go/src/github.com/JohnDDuncanIII/blog/"
 var title = "John's Weblog"
 var date_format = "Monday, January 2 2006 at 3:04pm"
 
@@ -295,6 +295,7 @@ func parse_comments(c []string) string {
 		cmt_name := cmt_splt[0]
 		//cmt_ip := cmt_splt[1]
 		cmt_email := cmt_splt[2]
+		fmt.Println(index, cmt_email);
 		cmt_hmpg := cmt_splt[3]
 		cmt_epoch, err := strconv.ParseInt(cmt_splt[4], 10, 64)
 		if err != nil {

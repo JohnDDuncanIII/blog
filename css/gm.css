@@ -24,12 +24,15 @@ body {
     width: 760px;
     position: relative;
     text-align:left;
-    border: 2px solid black;
+    /*border: 2px solid black;
+      box-shadow: 0 2px 6px rgba(100, 100, 100, 0.3);*/
     padding:0px;
     padding: 5px;
     background-color: white;
     background-image: url(data:image/gif;base64,R0lGODdhAwADAIABAPv7+////ywAAAAAAwADAAACA0RuWAA7);
-    box-shadow: 0 2px 6px rgba(100, 100, 100, 0.3);
+    border: 2px double black;
+    margin-bottom: 3px;
+    box-shadow: 2px 2px 0px -1px black;
 }
 /*#frame::after {
   content: " ";
